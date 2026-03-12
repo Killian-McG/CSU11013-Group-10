@@ -15,6 +15,8 @@ class Flight {
   int cancelled;
   int diverted;
   int distance;
+  
+  // MY SECTION START
 
   Flight(TableRow row) {
     date = row.getString("FL_DATE");
@@ -34,6 +36,9 @@ class Flight {
     diverted = row.getInt("DIVERTED");
     distance = row.getInt("DISTANCE");
   }
+  
+  // MY SECTION END
+  
 
   String toString() {
     return date + "  " + carrier + flightNum + "  " + origin + " -> " + destination + "  " + distance + " miles";

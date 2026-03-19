@@ -16,7 +16,6 @@ class Flight {
   int diverted;
   int distance;
   
-  // MY SECTION START
 
   Flight(TableRow row) {
     date = row.getString("FL_DATE");
@@ -37,10 +36,9 @@ class Flight {
     distance = row.getInt("DISTANCE");
   }
   
-  // MY SECTION END
   
 
   String toString() {
-    return date + "  " + carrier + flightNum + "  " + origin + " -> " + destination + "  " + distance + " miles";
+    return departureTime;
   }
 }

@@ -39,6 +39,6 @@ class Flight {
   
 
   String toString() {
-    return date + "  " + carrier + flightNum + "  " + origin + " -> " + destination + "  " + distance + " miles";
+    return departureTime;
   }
 }

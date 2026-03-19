@@ -1,3 +1,4 @@
+
 class Histogram {
   int[] hourCounts;
 

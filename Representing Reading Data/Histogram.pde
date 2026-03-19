@@ -1,4 +1,3 @@
-
 class Histogram {
   int[] hourCounts;
 
@@ -6,38 +5,34 @@ class Histogram {
     hourCounts = new int[24];
   }
 
-  void setData(ArrayList<String> times) {
+  void setData() {
     for (int i = 0; i < 24; i++) {
       hourCounts[i] = 0;
     }
-
-    for (String time : times) {
-      int hour = getHourFromTime(time);
-
+    for (int i = 0; i < flights.size(); i++) {
+      Flight f = flights.get(i);
+      int hour = getHourFromTime(f.departureTime);
       if (hour >= 0 && hour < 24) {
         hourCounts[hour]++;
       }
-    }
+    }    
   }
 
   int getHourFromTime(String time) {
-    if (time == null) {
+    if (time == null || time.length() < 3) {
       return -1;
     }
-
-    String[] parts = split(time, ':');
-
-    if (parts.length < 2) {
-      return -1;
+    if (time.length() < 4) {
+      return int(time.substring(0, 1));
+    } else {
+      return int(time.substring(0, 2));
     }
-
-    return int(parts[0]);
+    
   }
 
   void display() {
     background(245);
-
-    // DELETE FROM HERE
+    setData();
 
     int leftMargin = 80;
     int rightMargin = 40;
@@ -56,18 +51,18 @@ class Histogram {
       }
     }
 
-    // title
+    
     fill(30);
     textAlign(CENTER, CENTER);
     textSize(22);
     text("Flights Per Hour", width / 2, 30);
 
-    // graph background
+
     noStroke();
     fill(255);
     rect(graphX, graphY, graphW, graphH);
 
-    // horizontal grid lines + y labels
+    
     stroke(220);
     fill(80);
     textSize(11);
@@ -86,13 +81,13 @@ class Histogram {
       text(labelValue, graphX - 10, y);
     }
 
-    // axes
+    
     stroke(60);
     strokeWeight(1.5);
     line(graphX, graphY, graphX, graphY + graphH);
     line(graphX, graphY + graphH, graphX + graphW, graphY + graphH);
 
-    // bars
+   
     float barWidth = graphW / 24.0;
 
     for (int i = 0; i < 24; i++) {
@@ -104,7 +99,7 @@ class Histogram {
       fill(100, 140, 220);
       rect(barX, barY, barWidth - 4, barHeight);
 
-      // hour labels
+     
       fill(50);
       textAlign(CENTER, TOP);
       textSize(10);
@@ -113,7 +108,6 @@ class Histogram {
         text(i, barX + (barWidth - 4) / 2, graphY + graphH + 8);
       }
 
-      // count above bar
       if (hourCounts[i] > 0) {
         fill(30);
         textAlign(CENTER, BOTTOM);
@@ -121,7 +115,6 @@ class Histogram {
       }
     }
 
-    // axis labels
     fill(40);
     textAlign(CENTER, CENTER);
     textSize(14);
@@ -132,7 +125,5 @@ class Histogram {
     rotate(-HALF_PI);
     text("Number of Flights", 0, 0);
     popMatrix();
-
-    // TO HERE
   }
 }

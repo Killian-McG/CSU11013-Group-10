@@ -1,3 +1,4 @@
+
 class PieChart {
 
   float x, y, diameter;
@@ -36,6 +37,10 @@ class PieChart {
     float total = onTime + late + cancelledCount;
     if (total == 0) return;
 
+    float pOnTime = (onTime / total) * 100;
+    float pLate = (late / total) * 100;
+    float pCancelled = (cancelledCount / total) * 100;
+
     float angle1 = (onTime / total) * TWO_PI;
     float angle2 = (late / total) * TWO_PI;
     float angle3 = (cancelledCount / total) * TWO_PI;
@@ -53,10 +58,11 @@ class PieChart {
     fill(200, 0, 0);
     arc(x, y, diameter, diameter, lastAngle, lastAngle + angle3);
 
-    drawLegend(onTime, late, cancelledCount);
+    drawLegend(onTime, late, cancelledCount, pOnTime, pLate, pCancelled);
   }
 
-  void drawLegend(int onTime, int late, int cancelledCount) {
+  void drawLegend(int onTime, int late, int cancelledCount,
+                  float pOnTime, float pLate, float pCancelled) {
 
     float legendX = x + diameter/2 + 40;
     float legendY = y - 60;
@@ -66,16 +72,16 @@ class PieChart {
     fill(0, 200, 0);
     rect(legendX, legendY, 20, 20);
     fill(0);
-    text("On Time (" + onTime + ")", legendX + 30, legendY + 15);
+    text("On Time (" + onTime + ", " + nf(pOnTime, 0, 1) + "%)", legendX + 30, legendY + 15);
 
     fill(255, 150, 0);
     rect(legendX, legendY + 40, 20, 20);
     fill(0);
-    text("Late (" + late + ")", legendX + 30, legendY + 55);
+    text("Late (" + late + ", " + nf(pLate, 0, 1) + "%)", legendX + 30, legendY + 55);
 
     fill(200, 0, 0);
     rect(legendX, legendY + 80, 20, 20);
     fill(0);
-    text("Cancelled (" + cancelledCount + ")", legendX + 30, legendY + 95);
+    text("Cancelled (" + cancelledCount + ", " + nf(pCancelled, 0, 1) + "%)", legendX + 30, legendY + 95);
   }
 }

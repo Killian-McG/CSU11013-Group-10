@@ -12,6 +12,8 @@ CheckBox    testCheckBox;
 Dropdown    testDropdown;
 TimeSlider  testTimeSlider;
 
+SearchScreen searchScreen;
+
 
 void setup() {
   size(1200, 600);

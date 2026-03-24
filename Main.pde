@@ -1,5 +1,6 @@
 ArrayList<Flight> flights;
 
+DataScreen  dataScreen;
 
 Histogram   histogram;
 BarChart    barChart;
@@ -16,7 +17,6 @@ void setup() {
   size(1200, 600);
   textSize(16);
   
-  histogram = new Histogram();
   flights = new ArrayList<Flight>();
  
   Table table = loadTable("data/flights2k.csv", "header");
@@ -25,6 +25,8 @@ void setup() {
     flights.add(f);
     
   }
+  
+  dataScreen  = new DataScreen();
   
   histogram   = new Histogram();
   barChart    = new BarChart();
@@ -41,6 +43,9 @@ void setup() {
 
 void draw() {
   background(255);
+  
+  dataScreen.setChart("histogram");
+  dataScreen.display();
 
   //histogram.display();
 

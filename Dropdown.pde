@@ -2,11 +2,9 @@ class Dropdown {
   float x, y, w, h;
   String label;
   String[] options;
-
   int selectedIndex;
   boolean isOpen;
   int hoveredIndex;
-
   color bgColor;
   color borderColor;
   color hoverColor;
@@ -24,11 +22,9 @@ class Dropdown {
     this.h = h;
     this.label = label;
     this.options = options;
-
-    selectedIndex = 0;
+    selectedIndex = (options != null && options.length > 0) ? 0 : -1;
     isOpen = false;
     hoveredIndex = -1;
-
     bgColor = color(255);
     borderColor = color(180);
     hoverColor = color(230, 240, 255);
@@ -43,7 +39,6 @@ class Dropdown {
   void display() {
     drawLabel();
     drawClosedBox();
-
     if (isOpen) {
       drawOptions();
     }
@@ -62,39 +57,41 @@ class Dropdown {
     strokeWeight(1);
     fill(headerBg);
     rect(x, y, w, h, 6);
-
     fill(textColor);
     noStroke();
     textSize(13);
     textAlign(LEFT, CENTER);
-
-    if (options != null && options.length > 0) {
+    if (options != null && options.length > 0 && selectedIndex >= 0) {
       text(options[selectedIndex], x + 12, y + h / 2);
     } else {
       text("No options", x + 12, y + h / 2);
     }
-
     fill(arrowColor);
     drawArrow(x + w - 18, y + h / 2, isOpen);
   }
 
   void drawOptions() {
     if (options == null || options.length == 0) return;
-
+    float listH = options.length * h;
+    stroke(borderColor);
+    strokeWeight(1);
+    fill(bgColor);
+    rect(x, y + h, w, listH, 0, 0, 6, 6);
     for (int i = 0; i < options.length; i++) {
       float optionY = y + h + i * h;
-
-      stroke(borderColor);
-      strokeWeight(1);
-      fill(i == hoveredIndex ? hoverColor : bgColor);
-      rect(x, optionY, w, h);
-
-      fill(textColor);
       noStroke();
+      if (i == hoveredIndex) {
+        fill(hoverColor);
+        if (i == options.length - 1) {
+          rect(x + 1, optionY, w - 2, h - 1, 0, 0, 6, 6);
+        } else {
+          rect(x + 1, optionY, w - 2, h);
+        }
+      }
+      fill(textColor);
       textSize(13);
       textAlign(LEFT, CENTER);
       text(options[i], x + 12, optionY + h / 2);
-
       if (i == selectedIndex) {
         fill(selectedMarkColor);
         textAlign(RIGHT, CENTER);
@@ -103,45 +100,42 @@ class Dropdown {
     }
   }
 
-  void drawArrow(float cx, float cy, boolean open) {
+  void drawArrow(float cx, float cy, boolean isOpen) {
     float s = 5;
     noStroke();
-
-    if (open) {
-      triangle(
-        cx - s, cy + s / 2,
-        cx + s, cy + s / 2,
-        cx,     cy - s / 2
-      );
+    fill(arrowColor);
+    if (isOpen) {
+      triangle(cx - s, cy + s / 2, cx + s, cy + s / 2, cx, cy - s / 2);
     } else {
-      triangle(
-        cx - s, cy - s / 2,
-        cx + s, cy - s / 2,
-        cx,     cy + s / 2
-      );
+      triangle(cx - s, cy - s / 2, cx + s, cy - s / 2, cx, cy + s / 2);
     }
   }
 
   void handleMousePressed() {
     if (isInsideHeader(mouseX, mouseY)) {
       isOpen = !isOpen;
+      hoveredIndex = -1;
       return;
     }
-
     if (isOpen) {
       int clickedIndex = getOptionIndexAt(mouseX, mouseY);
-
       if (clickedIndex != -1) {
         selectedIndex = clickedIndex;
       }
-
       isOpen = false;
+      hoveredIndex = -1;
     }
   }
 
   void handleMouseMoved() {
     hoveredIndex = -1;
+    if (isOpen) {
+      hoveredIndex = getOptionIndexAt(mouseX, mouseY);
+    }
+  }
 
+  void handleMouseDragged() {
+    hoveredIndex = -1;
     if (isOpen) {
       hoveredIndex = getOptionIndexAt(mouseX, mouseY);
     }
@@ -153,20 +147,17 @@ class Dropdown {
 
   int getOptionIndexAt(float mx, float my) {
     if (options == null) return -1;
-
     for (int i = 0; i < options.length; i++) {
       float optionY = y + h + i * h;
-
       if (mx >= x && mx <= x + w && my >= optionY && my <= optionY + h) {
         return i;
       }
     }
-
     return -1;
   }
 
   String getSelected() {
-    if (options == null || options.length == 0) {
+    if (options == null || options.length == 0 || selectedIndex < 0) {
       return "";
     }
     return options[selectedIndex];
@@ -184,7 +175,7 @@ class Dropdown {
 
   void setOptions(String[] newOptions) {
     options = newOptions;
-    selectedIndex = 0;
+    selectedIndex = (newOptions != null && newOptions.length > 0) ? 0 : -1;
     hoveredIndex = -1;
     isOpen = false;
   }

@@ -2,8 +2,9 @@ class TimeSlider {
   float x, y, w;
   String label;
 
-  int totalMinutes;
-  boolean dragging;
+  int startMinutes;
+  int endMinutes;
+  int activeKnob;
 
   float trackH;
   float knobR;
@@ -22,29 +23,32 @@ class TimeSlider {
     this.w = w;
     this.label = label;
 
-    totalMinutes = 0;
-    dragging = false;
+    startMinutes = 480;
+    endMinutes = 1020;
+    activeKnob = 0;
 
-    trackH = 4;
+    trackH = 6;
     knobR = 10;
 
-    trackColor = color(200);
-    fillColor = color(80, 120, 220);
+    trackColor = color(220);
+    fillColor = color(70, 120, 230);
     knobColor = color(255);
-    knobBorder = color(80, 120, 220);
-    textColor = color(30);
-    labelColor = color(100);
+    knobBorder = color(70, 120, 230);
+    textColor = color(25);
+    labelColor = color(110);
     tickColor = color(180);
   }
 
   void display() {
-    float knobX = getKnobX();
+    float startX = getKnobX(startMinutes);
+    float endX = getKnobX(endMinutes);
 
     drawLabel();
     drawTimeText();
     drawTicks();
-    drawTrack(knobX);
-    drawKnob(knobX);
+    drawTrack(startX, endX);
+    drawKnob(startX);
+    drawKnob(endX);
   }
 
   void drawLabel() {
@@ -60,7 +64,7 @@ class TimeSlider {
     noStroke();
     textSize(14);
     textAlign(LEFT, BOTTOM);
-    text(getTime(), x, y - 6);
+    text(getStartTime() + " - " + getEndTime(), x, y - 6);
   }
 
   void drawTicks() {
@@ -71,19 +75,19 @@ class TimeSlider {
       float tx = x + (h / 23.0) * w;
       float th = (h % 6 == 0) ? 6 : 3;
 
-      line(tx, y + 2, tx, y + 2 + th);
+      line(tx, y + 8, tx, y + 8 + th);
 
       if (h % 6 == 0) {
         fill(tickColor);
         noStroke();
         textSize(9);
         textAlign(CENTER, TOP);
-        text(h + ":00", tx, y + 10);
+        text(nf(h, 2) + ":00", tx, y + 16);
       }
     }
   }
 
-  void drawTrack(float knobX) {
+  void drawTrack(float startX, float endX) {
     stroke(trackColor);
     strokeWeight(trackH);
     strokeCap(ROUND);
@@ -92,7 +96,7 @@ class TimeSlider {
     stroke(fillColor);
     strokeWeight(trackH);
     strokeCap(ROUND);
-    line(x, y, knobX, y);
+    line(startX, y, endX, y);
   }
 
   void drawKnob(float knobX) {
@@ -103,53 +107,108 @@ class TimeSlider {
   }
 
   void handleMousePressed() {
-    float knobX = getKnobX();
+    float startX = getKnobX(startMinutes);
+    float endX = getKnobX(endMinutes);
 
-    if (dist(mouseX, mouseY, knobX, y) <= knobR + 4) {
-      dragging = true;
+    float dStart = dist(mouseX, mouseY, startX, y);
+    float dEnd = dist(mouseX, mouseY, endX, y);
+
+    if (dStart <= knobR + 6 || dEnd <= knobR + 6) {
+      activeKnob = (dStart <= dEnd) ? 1 : 2;
+    } else if (mouseX >= x && mouseX <= x + w && abs(mouseY - y) <= 12) {
+      activeKnob = (abs(mouseX - startX) <= abs(mouseX - endX)) ? 1 : 2;
+      updateActiveKnob();
     }
   }
 
   void handleMouseDragged() {
-    if (dragging) {
-      float clampedX = constrain(mouseX, x, x + w);
-      totalMinutes = round(((clampedX - x) / w) * 1439);
-      totalMinutes = constrain(totalMinutes, 0, 1439);
+    if (activeKnob != 0) {
+      updateActiveKnob();
     }
   }
 
   void handleMouseReleased() {
-    dragging = false;
+    activeKnob = 0;
   }
 
-  float getKnobX() {
-    return x + (totalMinutes / 1439.0) * w;
+  void updateActiveKnob() {
+    int minutes = xToMinutes(constrain(mouseX, x, x + w));
+
+    if (activeKnob == 1) {
+      startMinutes = constrain(minutes, 0, endMinutes);
+    } else if (activeKnob == 2) {
+      endMinutes = constrain(minutes, startMinutes, 1439);
+    }
+  }
+
+  float getKnobX(int minutes) {
+    return x + (minutes / 1439.0) * w;
+  }
+
+  int xToMinutes(float px) {
+    return round(((px - x) / w) * 1439);
   }
 
   void snapTo(int interval) {
-    totalMinutes = round(totalMinutes / (float) interval) * interval;
-    totalMinutes = constrain(totalMinutes, 0, 1439);
+    startMinutes = round(startMinutes / (float) interval) * interval;
+    endMinutes = round(endMinutes / (float) interval) * interval;
+
+    startMinutes = constrain(startMinutes, 0, 1439);
+    endMinutes = constrain(endMinutes, startMinutes, 1439);
   }
 
-  String getTime() {
-    int h = totalMinutes / 60;
-    int m = totalMinutes % 60;
+  String formatTime(int total) {
+    int h = total / 60;
+    int m = total % 60;
     return nf(h, 2) + ":" + nf(m, 2);
   }
 
-  int getHour() {
-    return totalMinutes / 60;
+  String getStartTime() {
+    return formatTime(startMinutes);
   }
 
-  int getMinute() {
-    return totalMinutes % 60;
+  String getEndTime() {
+    return formatTime(endMinutes);
   }
 
-  int getTotalMinutes() {
-    return totalMinutes;
+  int getStartHour() {
+    return startMinutes / 60;
   }
 
-  void setTotalMinutes(int minutes) {
-    totalMinutes = constrain(minutes, 0, 1439);
+  int getStartMinute() {
+    return startMinutes % 60;
+  }
+
+  int getEndHour() {
+    return endMinutes / 60;
+  }
+
+  int getEndMinute() {
+    return endMinutes % 60;
+  }
+
+  int getStartTotalMinutes() {
+    return startMinutes;
+  }
+
+  int getEndTotalMinutes() {
+    return endMinutes;
+  }
+
+  int getDurationMinutes() {
+    return endMinutes - startMinutes;
+  }
+
+  void setStartMinutes(int minutes) {
+    startMinutes = constrain(minutes, 0, endMinutes);
+  }
+
+  void setEndMinutes(int minutes) {
+    endMinutes = constrain(minutes, startMinutes, 1439);
+  }
+
+  void setInterval(int start, int end) {
+    startMinutes = constrain(min(start, end), 0, 1439);
+    endMinutes = constrain(max(start, end), 0, 1439);
   }
 }

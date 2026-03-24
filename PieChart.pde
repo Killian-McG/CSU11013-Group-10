@@ -1,16 +1,25 @@
-
 class PieChart {
+  float x;
+  float y;
+  float diameter;
 
-  float x, y, diameter;
+  color onTimeColor;
+  color lateColor;
+  color cancelledColor;
+  color textColor;
 
   PieChart(float x, float y, float diameter) {
     this.x = x;
     this.y = y;
     this.diameter = diameter;
+
+    onTimeColor = color(0, 200, 0);
+    lateColor = color(255, 150, 0);
+    cancelledColor = color(200, 0, 0);
+    textColor = color(0);
   }
 
-  void draw(ArrayList<Flight> flights) {
-
+  void display(ArrayList<Flight> flights) {
     int onTime = 0;
     int late = 0;
     int cancelledCount = 0;
@@ -35,53 +44,62 @@ class PieChart {
     }
 
     float total = onTime + late + cancelledCount;
-    if (total == 0) return;
 
-    float pOnTime = (onTime / total) * 100;
-    float pLate = (late / total) * 100;
-    float pCancelled = (cancelledCount / total) * 100;
+    if (total == 0) {
+      fill(textColor);
+      textAlign(CENTER, CENTER);
+      textSize(16);
+      text("No data to display", x, y);
+      return;
+    }
 
-    float angle1 = (onTime / total) * TWO_PI;
-    float angle2 = (late / total) * TWO_PI;
-    float angle3 = (cancelledCount / total) * TWO_PI;
+    float pOnTime = (onTime / total) * 100.0;
+    float pLate = (late / total) * 100.0;
+    float pCancelled = (cancelledCount / total) * 100.0;
 
-    float lastAngle = 0;
+    float angleOnTime = (onTime / total) * TWO_PI;
+    float angleLate = (late / total) * TWO_PI;
+    float angleCancelled = (cancelledCount / total) * TWO_PI;
 
-    fill(0, 200, 0);
-    arc(x, y, diameter, diameter, lastAngle, lastAngle + angle1);
-    lastAngle += angle1;
+    float startAngle = 0;
 
-    fill(255, 150, 0);
-    arc(x, y, diameter, diameter, lastAngle, lastAngle + angle2);
-    lastAngle += angle2;
+    noStroke();
 
-    fill(200, 0, 0);
-    arc(x, y, diameter, diameter, lastAngle, lastAngle + angle3);
+    fill(onTimeColor);
+    arc(x, y, diameter, diameter, startAngle, startAngle + angleOnTime, PIE);
+    startAngle += angleOnTime;
+
+    fill(lateColor);
+    arc(x, y, diameter, diameter, startAngle, startAngle + angleLate, PIE);
+    startAngle += angleLate;
+
+    fill(cancelledColor);
+    arc(x, y, diameter, diameter, startAngle, startAngle + angleCancelled, PIE);
 
     drawLegend(onTime, late, cancelledCount, pOnTime, pLate, pCancelled);
   }
 
   void drawLegend(int onTime, int late, int cancelledCount,
                   float pOnTime, float pLate, float pCancelled) {
-
-    float legendX = x + diameter/2 + 40;
+    float legendX = x + diameter / 2 + 40;
     float legendY = y - 60;
 
     textSize(16);
+    textAlign(LEFT, TOP);
 
-    fill(0, 200, 0);
+    fill(onTimeColor);
     rect(legendX, legendY, 20, 20);
-    fill(0);
-    text("On Time (" + onTime + ", " + nf(pOnTime, 0, 1) + "%)", legendX + 30, legendY + 15);
+    fill(textColor);
+    text("On Time (" + onTime + ", " + nf(pOnTime, 0, 1) + "%)", legendX + 30, legendY);
 
-    fill(255, 150, 0);
+    fill(lateColor);
     rect(legendX, legendY + 40, 20, 20);
-    fill(0);
-    text("Late (" + late + ", " + nf(pLate, 0, 1) + "%)", legendX + 30, legendY + 55);
+    fill(textColor);
+    text("Late (" + late + ", " + nf(pLate, 0, 1) + "%)", legendX + 30, legendY + 40);
 
-    fill(200, 0, 0);
+    fill(cancelledColor);
     rect(legendX, legendY + 80, 20, 20);
-    fill(0);
-    text("Cancelled (" + cancelledCount + ", " + nf(pCancelled, 0, 1) + "%)", legendX + 30, legendY + 95);
+    fill(textColor);
+    text("Cancelled (" + cancelledCount + ", " + nf(pCancelled, 0, 1) + "%)", legendX + 30, legendY + 80);
   }
 }

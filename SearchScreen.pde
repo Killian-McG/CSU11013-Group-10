@@ -1,512 +1,200 @@
 class SearchScreen {
-  String[] tabs;
-  int activeTab;
 
-  float outerX;
-  float outerY;
-  float outerW;
-  float outerH;
-  float headerH;
-  float tabsY;
-  float tabsH;
-  float bodyX;
-  float bodyY;
-  float bodyW;
-  float bodyH;
-  float tabW;
-  float tabGap;
+  final int PADDING = 20;
+  final int TAB_W = 160;
+  final int TAB_H = 40;
 
-  Dropdown sortDropdown;
-  Dropdown categoryDropdown;
-  Dropdown viewDropdown;
-  CheckBox nonstopCheck;
-  CheckBox flexibleCheck;
-  TimeSlider timeSlider;
-  Button searchButton;
+  String[] chartKeys = { "histogram", "barchart", "scatterplot", "piechart" };
+  String[] chartLabels = { "Histogram", "Bar Chart", "Scatter Plot", "Pie Chart" };
 
-  String statusText;
-  String[] routeNames;
-  String[] routeTimes;
-  String[] routeTags;
+  int activeTab = 0;
+
+  TimeSlider[] sliders;
+  Button[] searchButtons;
+  Button[] tabButtons;
+  CheckBox[] cancelledBoxes;
+  Dropdown toleranceDropdown;
+
+  boolean searchFired = false;
+  String pendingChartKey;
+  int pendingStartMin;
+  int pendingEndMin;
+  boolean pendingIncludeCancelled;
+  int pendingDelayTolerance;
+
+  color bgColor = color(244, 247, 252);
+  color panelBg = color(255);
+  color panelStroke = color(200, 210, 230);
+  color titleCol = color(28, 33, 45);
 
   SearchScreen() {
-    tabs = new String[]{"Overview", "Flights", "Filters", "Stats"};
-    activeTab = 0;
+    sliders = new TimeSlider[4];
+    searchButtons = new Button[4];
+    tabButtons = new Button[4];
+    cancelledBoxes = new CheckBox[3];
 
-    sortDropdown = new Dropdown(0, 0, 210, 38, "Sort By", new String[]{"Best Match", "Price", "Duration", "Departure"});
-    categoryDropdown = new Dropdown(0, 0, 210, 38, "Category", new String[]{"All Flights", "Domestic", "International", "Popular"});
-    viewDropdown = new Dropdown(0, 0, 210, 38, "View", new String[]{"Compact", "Detailed", "Cards", "Timeline"});
+    int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * 10;
+    int tabStartX = (1200 - totalTabW) / 2;
+    for (int i = 0; i < 4; i++) {
+      tabButtons[i] = new Button(tabStartX + i * (TAB_W + 10), 88, TAB_W, TAB_H, chartLabels[i]);
+    }
 
-    nonstopCheck = new CheckBox(0, 0, 22, "Non-stop only");
-    flexibleCheck = new CheckBox(0, 0, 22, "Flexible dates");
+    for (int i = 0; i < 4; i++) {
+      sliders[i] = new TimeSlider(0, 0, 500, "Scheduled Departure Time Range");
+      sliders[i].setInterval(0, 1439);
+      searchButtons[i] = new Button(0, 0, 160, 44, "Search");
+    }
 
-    timeSlider = new TimeSlider(0, 0, 420, "Preferred Time");
-    timeSlider.setInterval(420, 1140);
+    for (int i = 0; i < 3; i++) {
+      cancelledBoxes[i] = new CheckBox(0, 0, 20, "Include cancelled flights");
+    }
 
-    searchButton = new Button(0, 0, 150, 42, "Run Search");
-
-    statusText = "Ready";
-
-    routeNames = new String[]{
-      "Dublin to Paris",
-      "Dublin to Rome",
-      "Dublin to Berlin",
-      "Dublin to Madrid"
-    };
-
-    routeTimes = new String[]{
-      "08:10  •  2h 05m",
-      "10:45  •  2h 55m",
-      "13:20  •  2h 20m",
-      "17:05  •  2h 40m"
-    };
-
-    routeTags = new String[]{
-      "Popular",
-      "Best Price",
-      "Fastest",
-      "Evening"
-    };
+    toleranceDropdown = new Dropdown(0, 0, 220, 36, "Delay Tolerance",
+      new String[]{"0 mins", "10 mins", "20 mins", "30 mins", "40 mins", "50 mins", "60 mins"});
   }
 
   void display() {
-    updateLayout();
-    drawBackground();
+    background(bgColor);
     drawHeader();
     drawTabs();
     drawBody();
   }
 
-  void updateLayout() {
-    outerX = 28;
-    outerY = 24;
-    outerW = width - 56;
-    outerH = height - 48;
-
-    headerH = 92;
-    tabsY = outerY + headerH + 16;
-    tabsH = 44;
-
-    bodyX = outerX;
-    bodyY = tabsY + tabsH + 16;
-    bodyW = outerW;
-    bodyH = outerH - headerH - tabsH - 32;
-
-    tabGap = 12;
-    tabW = min(170, (outerW - tabGap * 3) / 4.0);
-
-    sortDropdown.x = bodyX + bodyW - 250;
-    sortDropdown.y = bodyY + 24;
-    sortDropdown.w = 220;
-    sortDropdown.h = 38;
-
-    categoryDropdown.x = bodyX + 28;
-    categoryDropdown.y = bodyY + 36;
-    categoryDropdown.w = 220;
-    categoryDropdown.h = 38;
-
-    viewDropdown.x = bodyX + 272;
-    viewDropdown.y = bodyY + 36;
-    viewDropdown.w = 220;
-    viewDropdown.h = 38;
-
-    nonstopCheck.x = bodyX + 34;
-    nonstopCheck.y = bodyY + 108;
-    nonstopCheck.size = 22;
-
-    flexibleCheck.x = bodyX + 230;
-    flexibleCheck.y = bodyY + 108;
-    flexibleCheck.size = 22;
-
-    timeSlider.x = bodyX + 34;
-    timeSlider.y = bodyY + 200;
-    timeSlider.w = bodyW - 68;
-
-    searchButton.x = bodyX + bodyW - 180;
-    searchButton.y = bodyY + 100;
-    searchButton.w = 150;
-    searchButton.h = 42;
-  }
-
-  void drawBackground() {
-    background(244, 247, 252);
-
-    noStroke();
-    fill(70, 120, 230, 20);
-    ellipse(width - 120, 90, 220, 220);
-    fill(70, 120, 230, 12);
-    ellipse(width - 40, 140, 180, 180);
-    fill(255);
-    rect(outerX, outerY, outerW, outerH, 26);
-  }
-
   void drawHeader() {
-    drawShadow(outerX, outerY, outerW, headerH, 26);
+    fill(panelBg);
+    stroke(panelStroke);
+    strokeWeight(1);
+    rect(0, 0, width, 70);
 
+    fill(titleCol);
     noStroke();
-    fill(255);
-    rect(outerX, outerY, outerW, headerH, 26);
-
-    fill(28, 33, 45);
-    textAlign(LEFT, TOP);
-    textSize(28);
-    text("Search Screen", outerX + 26, outerY + 20);
-
-    fill(110, 118, 132);
-    textSize(14);
-    text("Simple tab layout with placeholders you can swap later", outerX + 26, outerY + 56);
-
-    float badgeW = 136;
-    float badgeH = 34;
-    float badgeX = outerX + outerW - badgeW - 24;
-    float badgeY = outerY + 28;
-
-    fill(232, 240, 255);
-    rect(badgeX, badgeY, badgeW, badgeH, 14);
-    fill(55, 95, 195);
-    textAlign(CENTER, CENTER);
-    textSize(14);
-    text("Screen 1 Active", badgeX + badgeW / 2, badgeY + badgeH / 2);
+    textSize(24);
+    textAlign(LEFT, CENTER);
+    text("Flight Data Explorer", PADDING, 35);
   }
 
   void drawTabs() {
-    for (int i = 0; i < tabs.length; i++) {
-      float tx = outerX + i * (tabW + tabGap);
-      float ty = tabsY;
-      boolean hovered = mouseX >= tx && mouseX <= tx + tabW && mouseY >= ty && mouseY <= ty + tabsH;
-      boolean selected = i == activeTab;
+    int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * 10;
+    int tabStartX = (width - totalTabW) / 2;
+
+    for (int i = 0; i < 4; i++) {
+      tabButtons[i].x = tabStartX + i * (TAB_W + 10);
+      tabButtons[i].y = 82;
+
+      boolean active = (i == activeTab);
+      boolean hov = mouseX >= tabButtons[i].x && mouseX <= tabButtons[i].x + TAB_W &&
+                    mouseY >= tabButtons[i].y && mouseY <= tabButtons[i].y + TAB_H;
 
       noStroke();
-      if (selected) {
-        fill(70, 120, 230);
-      } else if (hovered) {
-        fill(232, 238, 248);
-      } else {
-        fill(246, 248, 252);
-      }
+      fill(active ? color(70, 120, 230) : hov ? color(210, 218, 235) : color(225, 230, 240));
+      rect(tabButtons[i].x, tabButtons[i].y, TAB_W, TAB_H, 10);
 
-      rect(tx, ty, tabW, tabsH, 14);
-
-      if (selected) {
-        fill(255);
-      } else {
-        fill(70, 78, 92);
-      }
-
+      fill(active ? color(255) : color(80, 90, 110));
+      textSize(13);
       textAlign(CENTER, CENTER);
-      textSize(15);
-      text(tabs[i], tx + tabW / 2, ty + tabsH / 2);
+      text(chartLabels[i], tabButtons[i].x + TAB_W / 2, tabButtons[i].y + TAB_H / 2);
     }
   }
 
   void drawBody() {
-    drawShadow(bodyX, bodyY, bodyW, bodyH, 26);
+    float bodyX = PADDING;
+    float bodyY = 82 + TAB_H + 8;
+    float bodyW = width - PADDING * 2;
+    float bodyH = height - bodyY - PADDING;
 
+    fill(panelBg);
+    stroke(panelStroke);
+    strokeWeight(1);
+    rect(bodyX, bodyY, bodyW, bodyH, 8);
+
+    fill(titleCol);
     noStroke();
-    fill(255);
-    rect(bodyX, bodyY, bodyW, bodyH, 26);
-
-    if (activeTab == 0) {
-      drawOverviewTab();
-    } else if (activeTab == 1) {
-      drawFlightsTab();
-    } else if (activeTab == 2) {
-      drawFiltersTab();
-    } else if (activeTab == 3) {
-      drawStatsTab();
-    }
-  }
-
-  void drawOverviewTab() {
-    fill(28, 33, 45);
+    textSize(20);
     textAlign(LEFT, TOP);
-    textSize(22);
-    text("Overview", bodyX + 28, bodyY + 24);
+    text(chartLabels[activeTab], bodyX + 28, bodyY + 24);
 
-    fill(112, 120, 134);
-    textSize(14);
-    text("This tab can hold a quick summary of whatever the search screen should show first.", bodyX + 28, bodyY + 56);
+    float sliderX = bodyX + 40;
+    float sliderY = bodyY + 90;
+    float sliderW = bodyW - 80;
 
-    float cardY = bodyY + 100;
-    float cardW = (bodyW - 84) / 3.0;
-    float cardH = 118;
+    sliders[activeTab].x = sliderX;
+    sliders[activeTab].y = sliderY;
+    sliders[activeTab].w = sliderW;
+    sliders[activeTab].display();
 
-    drawMiniCard(bodyX + 28, cardY, cardW, cardH, "Saved Routes", "12", "Placeholder count");
-    drawMiniCard(bodyX + 42 + cardW, cardY, cardW, cardH, "Visible Results", "248", "Placeholder count");
-    drawMiniCard(bodyX + 56 + cardW * 2, cardY, cardW, cardH, "Best Match", "Morning Flight", "Placeholder label");
-
-    float panelX = bodyX + 28;
-    float panelY = cardY + cardH + 24;
-    float panelW = bodyW - 56;
-    float panelH = bodyH - (panelY - bodyY) - 28;
-
-    fill(248, 250, 254);
-    rect(panelX, panelY, panelW, panelH, 22);
-
-    fill(34, 40, 52);
-    textSize(18);
-    textAlign(LEFT, TOP);
-    text("Quick Notes", panelX + 22, panelY + 20);
-
-    drawBulletRow(panelX + 22, panelY + 62, "Tab 1 can introduce the screen");
-    drawBulletRow(panelX + 22, panelY + 102, "Tab 2 can list search results");
-    drawBulletRow(panelX + 22, panelY + 142, "Tab 3 can hold interactive filters");
-    drawBulletRow(panelX + 22, panelY + 182, "Tab 4 can show charts or summary values");
-  }
-
-  void drawFlightsTab() {
-    fill(28, 33, 45);
-    textAlign(LEFT, TOP);
-    textSize(22);
-    text("Flights", bodyX + 28, bodyY + 24);
-
-    sortDropdown.display();
-
-    fill(112, 120, 134);
-    textSize(14);
-    text("Simple placeholder rows for future search results", bodyX + 28, bodyY + 58);
-
-    float listX = bodyX + 28;
-    float listY = bodyY + 92;
-    float listW = bodyW - 56;
-    float rowH = 84;
-
-    for (int i = 0; i < 4; i++) {
-      float ry = listY + i * (rowH + 14);
-      drawFlightRow(listX, ry, listW, rowH, routeNames[i], routeTimes[i], routeTags[i], i);
+    float extraY = sliderY + 70;
+    if (activeTab < 3) {
+      cancelledBoxes[activeTab].x = bodyX + 40;
+      cancelledBoxes[activeTab].y = extraY;
+      cancelledBoxes[activeTab].display();
+    } else {
+      toleranceDropdown.x = bodyX + 40;
+      toleranceDropdown.y = extraY;
+      toleranceDropdown.display();
     }
 
-    fill(85, 94, 110);
-    textSize(13);
-    textAlign(LEFT, BOTTOM);
-    text("Status: " + statusText, bodyX + 32, bodyY + bodyH - 18);
-  }
+    float btnX = bodyX + bodyW / 2 - 80;
+    float btnY = bodyY + bodyH - 64;
 
-  void drawFiltersTab() {
-    fill(28, 33, 45);
-    textAlign(LEFT, TOP);
-    textSize(22);
-    text("Filters", bodyX + 28, bodyY + 24);
-
-    fill(112, 120, 134);
-    textSize(14);
-    text("These controls already work and can act as placeholders for your final filters", bodyX + 28, bodyY + 58);
-
-    fill(248, 250, 254);
-    rect(bodyX + 24, bodyY + 84, bodyW - 48, bodyH - 108, 22);
-
-    categoryDropdown.display();
-    viewDropdown.display();
-    nonstopCheck.display();
-    flexibleCheck.display();
-    timeSlider.display();
-    searchButton.display();
-
-    fill(70, 78, 92);
-    textAlign(LEFT, TOP);
-    textSize(15);
-    text("Current Selection", bodyX + 34, bodyY + 286);
-
-    float infoY = bodyY + 322;
-    drawValueLine(bodyX + 34, infoY, "Category", categoryDropdown.getSelected());
-    drawValueLine(bodyX + 34, infoY + 34, "View", viewDropdown.getSelected());
-    drawValueLine(bodyX + 34, infoY + 68, "Time Range", timeSlider.getStartTime() + " - " + timeSlider.getEndTime());
-    drawValueLine(bodyX + 34, infoY + 102, "Non-stop", nonstopCheck.isChecked() ? "Yes" : "No");
-    drawValueLine(bodyX + 34, infoY + 136, "Flexible", flexibleCheck.isChecked() ? "Yes" : "No");
-  }
-
-  void drawStatsTab() {
-    fill(28, 33, 45);
-    textAlign(LEFT, TOP);
-    textSize(22);
-    text("Stats", bodyX + 28, bodyY + 24);
-
-    fill(112, 120, 134);
-    textSize(14);
-    text("Simple visual placeholders for future data", bodyX + 28, bodyY + 58);
-
-    float cardY = bodyY + 92;
-    float statW = (bodyW - 84) / 3.0;
-
-    drawMiniCard(bodyX + 28, cardY, statW, 112, "Average Price", "€184", "Placeholder value");
-    drawMiniCard(bodyX + 42 + statW, cardY, statW, 112, "Fastest Route", "2h 05m", "Placeholder value");
-    drawMiniCard(bodyX + 56 + statW * 2, cardY, statW, 112, "Top Period", "Morning", "Placeholder value");
-
-    float chartX = bodyX + 28;
-    float chartY = cardY + 138;
-    float chartW = bodyW - 56;
-    float chartH = bodyH - (chartY - bodyY) - 28;
-
-    fill(248, 250, 254);
-    rect(chartX, chartY, chartW, chartH, 22);
-
-    fill(34, 40, 52);
-    textSize(18);
-    textAlign(LEFT, TOP);
-    text("Activity Snapshot", chartX + 22, chartY + 20);
-
-    float baseY = chartY + chartH - 44;
-    float barW = 86;
-    float gap = 34;
-    float startX = chartX + 34;
-    float[] values = {120, 180, 100, 220};
-    String[] labels = {"Mon", "Tue", "Wed", "Thu"};
-
-    for (int i = 0; i < values.length; i++) {
-      float bx = startX + i * (barW + gap);
-      float bh = values[i];
-      noStroke();
-      fill(220, 229, 245);
-      rect(bx, baseY - 220, barW, 220, 16);
-      fill(70, 120, 230);
-      rect(bx, baseY - bh, barW, bh, 16);
-      fill(70, 78, 92);
-      textAlign(CENTER, TOP);
-      textSize(13);
-      text(labels[i], bx + barW / 2, baseY + 10);
-    }
-  }
-
-  void drawMiniCard(float x, float y, float w, float h, String title, String value, String subtitle) {
-    fill(248, 250, 254);
-    rect(x, y, w, h, 22);
-
-    fill(108, 116, 130);
-    textAlign(LEFT, TOP);
-    textSize(13);
-    text(title, x + 18, y + 18);
-
-    fill(28, 33, 45);
-    textSize(24);
-    text(value, x + 18, y + 44);
-
-    fill(112, 120, 134);
-    textSize(13);
-    text(subtitle, x + 18, y + h - 24);
-  }
-
-  void drawBulletRow(float x, float y, String label) {
-    fill(70, 120, 230);
-    ellipse(x + 6, y + 8, 10, 10);
-    fill(70, 78, 92);
-    textAlign(LEFT, TOP);
-    textSize(15);
-    text(label, x + 22, y);
-  }
-
-  void drawFlightRow(float x, float y, float w, float h, String route, String timeText, String tag, int index) {
-    fill(248, 250, 254);
-    rect(x, y, w, h, 20);
-
-    float accentH = h - 18;
-    fill(70, 120, 230);
-    rect(x + 10, y + 9, 8, accentH, 10);
-
-    fill(28, 33, 45);
-    textAlign(LEFT, TOP);
-    textSize(18);
-    text(route, x + 34, y + 18);
-
-    fill(112, 120, 134);
-    textSize(14);
-    text(timeText, x + 34, y + 48);
-
-    float tagW = 104;
-    float tagH = 28;
-    float tagX = x + w - tagW - 22;
-    float tagY = y + 16;
-
-    fill(232, 240, 255);
-    rect(tagX, tagY, tagW, tagH, 12);
-    fill(55, 95, 195);
-    textAlign(CENTER, CENTER);
-    textSize(13);
-    text(tag, tagX + tagW / 2, tagY + tagH / 2);
-
-    fill(70, 78, 92);
-    textAlign(RIGHT, BOTTOM);
-    textSize(13);
-    text("Placeholder row " + (index + 1), x + w - 22, y + h - 16);
-  }
-
-  void drawValueLine(float x, float y, String label, String value) {
-    fill(108, 116, 130);
-    textAlign(LEFT, TOP);
-    textSize(14);
-    text(label, x, y);
-
-    fill(28, 33, 45);
-    textAlign(LEFT, TOP);
-    textSize(15);
-    text(value, x + 120, y);
-  }
-
-  void drawShadow(float x, float y, float w, float h, float r) {
-    noStroke();
-    fill(20, 28, 45, 12);
-    rect(x + 4, y + 6, w, h, r);
-    fill(20, 28, 45, 6);
-    rect(x + 2, y + 3, w, h, r);
+    searchButtons[activeTab].x = btnX;
+    searchButtons[activeTab].y = btnY;
+    searchButtons[activeTab].display();
   }
 
   void handleMousePressed() {
-    for (int i = 0; i < tabs.length; i++) {
-      float tx = outerX + i * (tabW + tabGap);
-      if (mouseX >= tx && mouseX <= tx + tabW && mouseY >= tabsY && mouseY <= tabsY + tabsH) {
+    int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * 10;
+    int tabStartX = (width - totalTabW) / 2;
+    for (int i = 0; i < 4; i++) {
+      float tx = tabStartX + i * (TAB_W + 10);
+      if (mouseX >= tx && mouseX <= tx + TAB_W &&
+          mouseY >= 82 && mouseY <= 82 + TAB_H) {
         activeTab = i;
         return;
       }
     }
 
-    if (activeTab == 1) {
-      sortDropdown.handleMousePressed();
+    sliders[activeTab].handleMousePressed();
+
+    if (activeTab < 3) {
+      if (cancelledBoxes[activeTab].isMouseOver()) {
+        cancelledBoxes[activeTab].setChecked(!cancelledBoxes[activeTab].isChecked());
+      }
+    } else {
+      toleranceDropdown.handleMousePressed();
     }
 
-    if (activeTab == 2) {
-      categoryDropdown.handleMousePressed();
-      viewDropdown.handleMousePressed();
-      timeSlider.handleMousePressed();
+    float bodyX = PADDING;
+    float bodyY = 82 + TAB_H + 8;
+    float bodyW = width - PADDING * 2;
+    float bodyH = height - bodyY - PADDING;
+    float btnX = bodyX + bodyW / 2 - 80;
+    float btnY = bodyY + bodyH - 64;
 
-      if (nonstopCheck.isMouseOver()) {
-        nonstopCheck.setChecked(!nonstopCheck.isChecked());
-      }
+    searchButtons[activeTab].x = btnX;
+    searchButtons[activeTab].y = btnY;
 
-      if (flexibleCheck.isMouseOver()) {
-        flexibleCheck.setChecked(!flexibleCheck.isChecked());
-      }
-
-      if (searchButton.isClicked()) {
-        statusText = "Updated at " + nf(hour(), 2) + ":" + nf(minute(), 2);
-      }
+    if (searchButtons[activeTab].isClicked()) {
+      pendingChartKey = chartKeys[activeTab];
+      pendingStartMin = sliders[activeTab].getStartTotalMinutes();
+      pendingEndMin = sliders[activeTab].getEndTotalMinutes();
+      pendingIncludeCancelled = (activeTab < 3) && cancelledBoxes[activeTab].isChecked();
+      pendingDelayTolerance = (activeTab == 3)
+                                ? int(split(toleranceDropdown.getSelected(), ' ')[0])
+                                : 0;
+      searchFired = true;
     }
   }
 
   void handleMouseMoved() {
-    if (activeTab == 1) {
-      sortDropdown.handleMouseMoved();
-    }
-
-    if (activeTab == 2) {
-      categoryDropdown.handleMouseMoved();
-      viewDropdown.handleMouseMoved();
-    }
+    if (activeTab == 3) toleranceDropdown.handleMouseMoved();
   }
 
   void handleMouseDragged() {
-    if (activeTab == 1) {
-      sortDropdown.handleMouseDragged();
-    }
-
-    if (activeTab == 2) {
-      categoryDropdown.handleMouseDragged();
-      viewDropdown.handleMouseDragged();
-      timeSlider.handleMouseDragged();
-    }
+    sliders[activeTab].handleMouseDragged();
+    if (activeTab == 3) toleranceDropdown.handleMouseDragged();
   }
 
   void handleMouseReleased() {
-    if (activeTab == 2) {
-      timeSlider.handleMouseReleased();
-    }
+    sliders[activeTab].handleMouseReleased();
   }
 }

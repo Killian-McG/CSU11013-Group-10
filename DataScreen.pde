@@ -1,10 +1,8 @@
 class DataScreen {
 
-  final int PADDING     = 20;
-  final int TITLE_H     = 40;
-  final int GRAPH_W_PCT = 62;
-  final int INFO_H      = 120;
-  final int ICON_SIZE   = 28;
+  final int PADDING   = 20;
+  final int TITLE_H   = 40;
+  final int ICON_SIZE = 28;
 
   color bgColor      = color(245, 246, 248);
   color panelBg      = color(255);
@@ -16,9 +14,11 @@ class DataScreen {
   color filterFill   = color(240, 230, 255);
   color titleColor   = color(30);
   color subtleText   = color(140);
-  color iconColor    = color(80, 120, 220);
+  color btnBg        = color(70, 120, 230);
+  color btnHover     = color(50, 100, 210);
 
   String currentChart = "histogram";
+  boolean homeFired   = false;
 
   Histogram   histogram;
   BarChart    barChart;
@@ -55,13 +55,10 @@ class DataScreen {
     int bottomH  = 90;
     int bottomY  = height - bottomH - PADDING;
     int graphH   = bottomY - contentY - PADDING;
-
     int graphW   = width - PADDING * 2;
-    int graphX   = PADDING;
-
     int halfW    = (width - PADDING * 3) / 2;
 
-    drawGraph(graphX, contentY, graphW, graphH);
+    drawGraph(PADDING, contentY, graphW, graphH);
     drawInfo(PADDING, bottomY, halfW, bottomH);
     drawFilter(PADDING * 2 + halfW, bottomY, halfW, bottomH);
   }
@@ -77,6 +74,38 @@ class DataScreen {
     textSize(18);
     textAlign(LEFT, CENTER);
     text(getChartTitle(), PADDING, PADDING + TITLE_H / 2);
+
+    drawHomeButton();
+  }
+
+  void drawHomeButton() {
+    float bw   = 120;
+    float bh   = 32;
+    float bx   = width - bw - PADDING;
+    float by   = PADDING + TITLE_H / 2 - bh / 2;
+    boolean hov = mouseX >= bx && mouseX <= bx + bw &&
+                  mouseY >= by && mouseY <= by + bh;
+
+    noStroke();
+    fill(hov ? btnHover : btnBg);
+    rect(bx, by, bw, bh, 8);
+
+    fill(255);
+    textSize(12);
+    textAlign(CENTER, CENTER);
+    text("< Home", bx + bw / 2, by + bh / 2);
+  }
+
+  void handleMousePressed() {
+    float bw = 120;
+    float bh = 32;
+    float bx = width - bw - PADDING;
+    float by = PADDING + TITLE_H / 2 - bh / 2;
+
+    if (mouseX >= bx && mouseX <= bx + bw &&
+        mouseY >= by && mouseY <= by + bh) {
+      homeFired = true;
+    }
   }
 
   void drawGraph(int gx, int gy, int gw, int gh) {
@@ -90,7 +119,7 @@ class DataScreen {
 
     float scaleX = (float) gw / width;
     float scaleY = (float) gh / height;
-    float s = min(scaleX, scaleY);
+    float s      = min(scaleX, scaleY);
 
     float scaledW = width  * s;
     float scaledH = height * s;

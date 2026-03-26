@@ -4,6 +4,7 @@ class ScreenManager {
   DataScreen dataScreen;
   FlightFilter flightFilter;
   ArrayList<Flight> allFlights;
+ 
 
   boolean onSearch = true;
 
@@ -12,6 +13,10 @@ class ScreenManager {
     searchScreen = new SearchScreen();
     dataScreen = new DataScreen();
     flightFilter = new FlightFilter();
+  }
+  
+  void handleMouseWheel(float amount) {
+    searchScreen.handleMouseWheel(amount);
   }
 
   void display() {

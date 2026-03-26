@@ -20,6 +20,7 @@ class Dropdown {
   int visibleRows = 6;
   float scrollY = 0;
   float targetScrollY = 0;
+  float scrollbarGrabOffset = 0;
   
   boolean draggingScrollbar = false;
   float scrollbarGraboffset = 0;

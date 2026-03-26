@@ -14,12 +14,6 @@ class SearchScreen {
 
   String[] chartKeys = { "histogram", "barchart", "scatterplot", "piechart" };
   String[] chartLabels = { "Histogram", "Bar Chart", "Scatter Plot", "Pie Chart" };
-  String[] chartSubtitles = {
-    "Hour-by-hour departures",
-    "Grouped flight comparison",
-    "Scheduled vs actual timing",
-    "On-time vs late vs cancelled"
-  };
 
   int activeTab = 0;
 
@@ -196,10 +190,6 @@ void drawDropdownOverlays() {
     textAlign(LEFT, TOP);
     textSize(24);
     text("Flight Data Explorer", PADDING, 15);
-
-    fill(mutedText);
-    textSize(12);
-    text("Cleaner search layout, tighter text, and more room for filters.", PADDING, 46);
   }
 
   void drawTabs() {
@@ -243,10 +233,6 @@ void drawDropdownOverlays() {
     textAlign(LEFT, TOP);
     textSize(18);
     text(chartLabels[activeTab], x + 20, y + 18);
-
-    fill(mutedText);
-    textSize(11);
-    text(chartSubtitles[activeTab], x + 20, y + 42);
 
     float sliderTop = y + 74;
     drawSmallLabel("Scheduled time", x + 20, sliderTop - 18);
@@ -411,11 +397,6 @@ void drawDropdownOverlays() {
     noStroke();
     fill(color(246, 249, 255));
     rect(x, y, w, h, 10);
-
-    fill(textColor);
-    textAlign(LEFT, CENTER);
-    textSize(11);
-    text("Best use: " + chartSubtitles[activeTab], x + 12, y + h / 2);
   }
 
   void drawRangePill(float x, float y, float w, float h) {

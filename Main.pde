@@ -1,105 +1,44 @@
+import processing.event.MouseEvent;
+
+ArrayList<Flight> allFlights;
 ArrayList<Flight> flights;
-
-
-Histogram   histogram;
-BarChart    barChart;
-ScatterPlot scatterPlot;
-PieChart    pieChart;
-
-Button      testButton;
-CheckBox    testCheckBox;
-Dropdown    testDropdown;
-TimeSlider  testTimeSlider;
-
+ScreenManager     screenManager;
 
 void setup() {
-  size(1200, 600);
+  size(1200, 650);
   textSize(16);
-  
-  histogram = new Histogram();
-  flights = new ArrayList<Flight>();
- 
+
+  allFlights = new ArrayList<Flight>();
   Table table = loadTable("data/flights2k.csv", "header");
   for (TableRow row : table.rows()) {
-    Flight f = new Flight(row);
-    flights.add(f);
-    
+    allFlights.add(new Flight(row));
   }
-  
-  histogram   = new Histogram();
-  barChart    = new BarChart();
-  scatterPlot = new ScatterPlot();
-  pieChart    = new PieChart(width / 2, height / 2, 300);
-  
-  testButton     = new Button(50, 50, 160, 44, "Click Me");
-  testCheckBox   = new CheckBox(50, 130, 24, "Enable Feature");
-  testDropdown   = new Dropdown(50, 220, 200, 36, "Choose Option",
-                     new String[]{"Option A", "Option B", "Option C", "Option D"});
-  testTimeSlider = new TimeSlider(50, 400, 500, "Departure Time");
+
+  flights       = allFlights;
+  screenManager = new ScreenManager(allFlights);
 }
 
+void mouseWheel(MouseEvent event) {
+  screenManager.handleMouseWheel(event.getCount());
+}
 
 void draw() {
   background(255);
-
-  //histogram.display();
-
-  //barChart.drawbarchart();
-
-  //scatterPlot.drawScatterPlot();
-
-  //pieChart.display(flights);
-
-  //testButton.display();
-  //fill(0); textSize(14); textAlign(LEFT, TOP);
-  //text("Hovered: " + testButton.hovered, 50, 110);
-
-  //testCheckBox.display();
-  //fill(0); textSize(14); textAlign(LEFT, TOP);
-  //text("Checked: " + testCheckBox.isChecked(), 50, 170);
-
-  //testDropdown.display();
-  //fill(0); textSize(14); textAlign(LEFT, TOP);
-  //text("Selected: " + testDropdown.getSelected(), 50, 280);
-
-  //testTimeSlider.display();
-  //fill(0); textSize(14); textAlign(LEFT, TOP);
-  //text("Time: " + testTimeSlider.getTime()
-  //  + "  Hour: " + testTimeSlider.getHour()
-  //  + "  Min: "  + testTimeSlider.getMinute()
-  //  + "  Total mins: " + testTimeSlider.getTotalMinutes(),
-  //  50, 440);
+  screenManager.display();
 }
 
-
-
 void mousePressed() {
-  
-  //if (testButton.isClicked()) { println("Button clicked!"); }
-
-  //if (testCheckBox.isMouseOver()) testCheckBox.setChecked(!testCheckBox.isChecked());
-
-  //testDropdown.handleMousePressed();
-
-  //testTimeSlider.handleMousePressed();
+  screenManager.handleMousePressed();
 }
 
 void mouseMoved() {
-  //testDropdown.handleMouseMoved();
+  screenManager.handleMouseMoved();
 }
 
 void mouseDragged() {
-  //testDropdown.handleMouseDragged();
-
-  //testTimeSlider.handleMouseDragged();
+  screenManager.handleMouseDragged();
 }
 
 void mouseReleased() {
-  //testTimeSlider.handleMouseReleased();
+  screenManager.handleMouseReleased();
 }
-
-void keyPressed() {
-  // barChart.keyPressed();
-}
-
-  

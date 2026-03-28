@@ -9,7 +9,7 @@ void setup() {
   textSize(16);
 
   allFlights = new ArrayList<Flight>();
-  Table table = loadTable("data/flights2k.csv", "header");
+  Table table = loadTable("data/flights100k.csv", "header");
   for (TableRow row : table.rows()) {
     allFlights.add(new Flight(row));
   }

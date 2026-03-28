@@ -22,7 +22,7 @@ class Dropdown {
   float targetScrollY = 0;
   
   boolean draggingScrollbar = false;
-  float scrollbarGraboffset = 0;
+  float scrollbarGrabOffset = 0;
   
   float wheelStep = 18;
   float scrollEase = 0.22;
@@ -96,7 +96,7 @@ class Dropdown {
     int optionIndex = firstIndex + i;
     if (optionIndex >= options.length) break;
 
-    float itemY = y + h + i * h - offsetY;
+    float itemY = round(y + h + i * h - offsetY);
 
   
     if (itemY + h < y + h) continue;
@@ -150,9 +150,14 @@ class Dropdown {
   if (mouseX >= x && mouseX <= x + w &&
       mouseY >= y && mouseY <= y + h) {
     isOpen = !isOpen;
+
+    if (isOpen) {
+      draggingScrollbar = false;
+    }
     return;
   }
 
+  
   if (isOpen && options.length > visibleRows) {
     if (isMouseOverScrollbarThumb()) {
       draggingScrollbar = true;
@@ -166,6 +171,7 @@ class Dropdown {
     }
   }
 
+  // click an option in the open menu
   if (isOpen && isMouseOverOpenMenu()) {
     int clickedIndex = floor((scrollY + (mouseY - (y + h))) / h);
 
@@ -173,10 +179,13 @@ class Dropdown {
       selectedIndex = clickedIndex;
     }
 
+    draggingScrollbar = false;
     isOpen = false;
     return;
   }
 
+  
+  draggingScrollbar = false;
   isOpen = false;
 }
 

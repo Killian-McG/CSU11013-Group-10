@@ -1,5 +1,4 @@
 class SearchScreen {
-
   final int PADDING = 18;
   final int HEADER_H = 70;
   final int TAB_Y = 82;
@@ -9,18 +8,12 @@ class SearchScreen {
   final int CARD_RADIUS = 16;
   final int CARD_GAP = 18;
   final int FIELD_H = 34;
-  final int FIELD_GAP_Y = 16;
-  final int CHECKBOX_GAP_Y = 22;
+  final int FIELD_GAP_Y = 20;
+  final int CHECKBOX_GAP_Y = 30;
 
   String[] chartKeys = { "histogram", "barchart", "scatterplot", "piechart" };
   String[] chartLabels = { "Histogram", "Bar Chart", "Scatter Plot", "Pie Chart" };
-  String[] chartSubtitles = {
-    "Hour-by-hour departures",
-    "Grouped flight comparison",
-    "Scheduled vs actual timing",
-    "On-time vs late vs cancelled"
-  };
-
+ 
   int activeTab = 0;
 
   TimeSlider[] sliders;
@@ -32,12 +25,12 @@ class SearchScreen {
   CheckBox[] delayedOnlyBoxes;
   CheckBox[] onTimeOnlyBoxes;
 
-  Dropdown carrierDropdown;
-  Dropdown originStateDropdown;
-  Dropdown destinationStateDropdown;
-  Dropdown distanceDropdown;
-  Dropdown timeBucketDropdown;
-  Dropdown delayToleranceDropdown;
+  Dropdown[] carrierDropdowns;
+  Dropdown[] originStateDropdowns;
+  Dropdown[] destinationStateDropdowns;
+  Dropdown[] distanceDropdowns;
+  Dropdown[] timeBucketDropdowns;
+  Dropdown[] delayToleranceDropdowns;
 
   String[] carrierOptions;
   String[] originStateOptions;
@@ -85,34 +78,9 @@ class SearchScreen {
     carrierOptions = buildOptionsFromFlights("carrier", "Any carrier");
     originStateOptions = buildOptionsFromFlights("originState", "Any origin state");
     destinationStateOptions = buildOptionsFromFlights("destinationState", "Any destination state");
-
-    distanceOptions = new String[] {
-      "Any distance",
-      "Under 500 mi",
-      "500 - 1000 mi",
-      "1001 - 1500 mi",
-      "1501+ mi"
-    };
-
-    timeBucketOptions = new String[] {
-      "Any departure",
-      "Red-eye (00-05)",
-      "Morning (06-11)",
-      "Afternoon (12-16)",
-      "Evening (17-20)",
-      "Night (21-23)"
-    };
-
-    delayToleranceOptions = new String[] {
-      "0 mins",
-      "10 mins",
-      "20 mins",
-      "30 mins",
-      "45 mins",
-      "60 mins",
-      "90 mins",
-      "120 mins"
-    };
+    distanceOptions = new String[] {"Any distance", "Under 500 mi", "500 - 1000 mi", "1001 - 1500 mi", "1501+ mi"};
+    timeBucketOptions = new String[] {"Any departure", "Red-eye (00-05)", "Morning (06-11)", "Afternoon (12-16)", "Evening (17-20)", "Night (21-23)"};
+    delayToleranceOptions = new String[] {"0 mins", "10 mins", "20 mins", "30 mins", "45 mins", "60 mins", "90 mins", "120 mins"};
   }
 
   void initializeInteractiveControls() {
@@ -124,6 +92,13 @@ class SearchScreen {
     divertedBoxes = new CheckBox[chartKeys.length];
     delayedOnlyBoxes = new CheckBox[chartKeys.length];
     onTimeOnlyBoxes = new CheckBox[chartKeys.length];
+
+    carrierDropdowns = new Dropdown[chartKeys.length];
+    originStateDropdowns = new Dropdown[chartKeys.length];
+    destinationStateDropdowns = new Dropdown[chartKeys.length];
+    distanceDropdowns = new Dropdown[chartKeys.length];
+    timeBucketDropdowns = new Dropdown[chartKeys.length];
+    delayToleranceDropdowns = new Dropdown[chartKeys.length];
 
     int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * TAB_GAP;
     int tabStartX = (width - totalTabW) / 2;
@@ -138,15 +113,22 @@ class SearchScreen {
       divertedBoxes[i] = new CheckBox(0, 0, 20, "Diverted");
       delayedOnlyBoxes[i] = new CheckBox(0, 0, 20, "Only delayed");
       onTimeOnlyBoxes[i] = new CheckBox(0, 0, 20, "Only on-time");
-    }
 
-    carrierDropdown = new Dropdown(0, 0, 210, FIELD_H, "Carrier", carrierOptions);
-    originStateDropdown = new Dropdown(0, 0, 210, FIELD_H, "Origin state", originStateOptions);
-    destinationStateDropdown = new Dropdown(0, 0, 210, FIELD_H, "Destination state", destinationStateOptions);
-    distanceDropdown = new Dropdown(0, 0, 210, FIELD_H, "Distance", distanceOptions);
-    timeBucketDropdown = new Dropdown(0, 0, 210, FIELD_H, "Departure bucket", timeBucketOptions);
-    delayToleranceDropdown = new Dropdown(0, 0, 210, FIELD_H, "Max delay", delayToleranceOptions);
+      carrierDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Carrier", carrierOptions);
+      originStateDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Origin state", originStateOptions);
+      destinationStateDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Destination state", destinationStateOptions);
+      distanceDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Distance", distanceOptions);
+      timeBucketDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Departure bucket", timeBucketOptions);
+      delayToleranceDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Max delay", delayToleranceOptions);
+    }
   }
+
+  Dropdown carrierDropdown() { return carrierDropdowns[activeTab]; }
+  Dropdown originStateDropdown() { return originStateDropdowns[activeTab]; }
+  Dropdown destinationStateDropdown() { return destinationStateDropdowns[activeTab]; }
+  Dropdown distanceDropdown() { return distanceDropdowns[activeTab]; }
+  Dropdown timeBucketDropdown() { return timeBucketDropdowns[activeTab]; }
+  Dropdown delayToleranceDropdown() { return delayToleranceDropdowns[activeTab]; }
 
   void initializePendingSelections() {
     pendingChartKey = chartKeys[activeTab];
@@ -165,43 +147,90 @@ class SearchScreen {
   }
 
   void display() {
-  background(bgColor);
-  drawHeader();
-  drawTabs();
+    background(bgColor);
+    drawHeader();
+    drawTabs();
 
-  PanelRects rects = calculatePanelRects();
+    PanelRects rects = calculatePanelRects();
 
-  drawPreviewPanel(rects.previewX, rects.bodyY, rects.previewW, rects.bodyH);
-  drawFilterPanel(rects.filterX, rects.bodyY, rects.filterW, rects.bodyH);
+    drawPreviewPanel(rects.previewX, rects.bodyY, rects.previewW, rects.bodyH);
+    drawFilterPanel(rects.filterX, rects.bodyY, rects.filterW, rects.bodyH);
 
-  
-  drawDropdownOverlays();
-}
-
-void drawDropdownOverlays() {
-  if (carrierDropdown.isOpen) carrierDropdown.display();
-  if (originStateDropdown.isOpen) originStateDropdown.display();
-  if (destinationStateDropdown.isOpen) destinationStateDropdown.display();
-  if (distanceDropdown.isOpen) distanceDropdown.display();
-  if (timeBucketDropdown.isOpen) timeBucketDropdown.display();
-  if (delayToleranceDropdown.isOpen) delayToleranceDropdown.display();
-}
-
-  void drawHeader() {
-    noStroke();
-    fill(cardColor);
-    rect(0, 0, width, HEADER_H);
-
-    fill(textColor);
-    textAlign(LEFT, TOP);
-    textSize(24);
-    text("Flight Data Explorer", PADDING, 15);
-
-    fill(mutedText);
-    textSize(12);
-    text("Cleaner search layout, tighter text, and more room for filters.", PADDING, 46);
+    drawDropdownOverlays();
   }
 
+  void drawDropdownOverlays() {
+    if (carrierDropdown().isOpen) carrierDropdown().display();
+    if (originStateDropdown().isOpen) originStateDropdown().display();
+    if (destinationStateDropdown().isOpen) destinationStateDropdown().display();
+    if (distanceDropdown().isOpen) distanceDropdown().display();
+    if (timeBucketDropdown().isOpen) timeBucketDropdown().display();
+    if (delayToleranceDropdown().isOpen) delayToleranceDropdown().display();
+  }
+  
+ void drawHeader() {
+  noStroke();
+  fill(cardColor);
+  rect(0, 0, width, HEADER_H);
+
+  stroke(mutedText, 60);
+  line(0, HEADER_H - 1, width, HEADER_H - 1);
+  noStroke();
+
+  float cx = width / 2.0;
+
+  fill(textColor);
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  text("Flight Data Explorer", cx, HEADER_H * 0.25);
+
+  String selected = getSelectedChartLabel();
+  float pillW = max(220, textWidth(selected) + 30);
+  float pillH = 28;
+
+  fill(255, 255, 255, 18);
+  rectMode(CENTER);
+  rect(cx, HEADER_H * 0.58, pillW, pillH, 14);
+  rectMode(CORNER);
+
+  fill(textColor);
+  textSize(14);
+  text(selected, cx, HEADER_H * 0.58);
+
+  fill(mutedText);
+  textSize(12);
+  text(getSelectedChartDescription(), cx, HEADER_H * 0.80);
+}
+  
+  String getSelectedChartLabel() {
+  String key = chartKeys[activeTab];
+
+  if (key.equals("histogram")) return "Selected Graph: Histogram";
+  if (key.equals("barchart")) return "Selected Graph: Bar Chart";
+  if (key.equals("scatterplot")) return "Selected Graph: Scatter Plot";
+  if (key.equals("piechart")) return "Selected Graph: Pie Chart";
+
+  return "Selected Graph";
+}
+
+String getSelectedChartDescription() {
+  String key = chartKeys[activeTab];
+
+  if (key.equals("histogram")) {
+    return "Displays how flights are distributed across different hours of the day.";
+  } 
+  else if (key.equals("barchart")) {
+    return "Shows which origin airports have the highest number of flights.";
+  } 
+  else if (key.equals("scatterplot")) {
+    return "Compares each flights scheduled departure time with its actual departure time to reveal delays.";
+  } 
+  else if (key.equals("piechart")) {
+    return "Summarizes the share of flights that were on time, late, or cancelled.";
+  }
+
+  return "";
+}
   void drawTabs() {
     int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * TAB_GAP;
     int tabStartX = (width - totalTabW) / 2;
@@ -246,10 +275,9 @@ void drawDropdownOverlays() {
 
     fill(mutedText);
     textSize(11);
-    text(chartSubtitles[activeTab], x + 20, y + 42);
-
+    
     float sliderTop = y + 74;
-    drawSmallLabel("Scheduled time", x + 20, sliderTop - 18);
+    drawSmallLabel("", x + 20, sliderTop - 18);
 
     sliders[activeTab].x = x + 20;
     sliders[activeTab].y = sliderTop;
@@ -259,7 +287,7 @@ void drawDropdownOverlays() {
     drawRangePill(x + 20, sliderTop + 34, w - 40, 26);
 
     float fieldsTop = sliderTop + 76;
-    drawSmallLabel("Filters", x + 20, fieldsTop - 18);
+    drawSmallLabel("", x + 20, fieldsTop - 18);
     drawCompactFilterGrid(x + 20, fieldsTop, w - 40);
 
     float buttonY = y + h - 60;
@@ -267,55 +295,92 @@ void drawDropdownOverlays() {
   }
 
   void drawPreviewPanel(float x, float y, float w, float h) {
-    drawCard(x, y, w, h);
+  drawCard(x, y, w, h);
 
-    ArrayList<Flight> previewFlights = buildFilteredFlightsFromCurrentSelections();
-    int flightCount = previewFlights.size();
-    int delayedCount = countDelayed(previewFlights);
-    int onTimeCount = countOnTime(previewFlights);
-    int cancelledCount = countCancelled(previewFlights);
-    int divertedCount = countDiverted(previewFlights);
+  ArrayList<Flight> previewFlights = buildFilteredFlightsFromCurrentSelections();
+  int flightCount = previewFlights.size();
+  int delayedCount = countDelayed(previewFlights);
+  int onTimeCount = countOnTime(previewFlights);
+  int cancelledCount = countCancelled(previewFlights);
+  int divertedCount = countDiverted(previewFlights);
 
-    fill(textColor);
-    textAlign(LEFT, TOP);
-    textSize(18);
-    text("Preview", x + 20, y + 18);
+  fill(textColor);
+  textAlign(LEFT, TOP);
+  textSize(18);
+  text("Data Preview", x + 20, y + 18);
 
-    fill(mutedText);
-    textSize(11);
-    text("Results update live before you search.", x + 20, y + 42);
+  fill(mutedText);
+  textSize(11);
+  text("These results will be displayed on your chosen graph", x + 20, y + 42);
 
-    drawSummaryHero(x + 20, y + 64, w - 40, 70, flightCount);
+  drawSummaryHero(x + 20, y + 64, w - 40, 70, flightCount);
 
-    float statsY = y + 152;
-    float statsW = (w - 54) / 2.0;
-    drawStatTile("On-time", str(onTimeCount), x + 20, statsY, statsW, successCol);
-    drawStatTile("Delayed", str(delayedCount), x + 34 + statsW, statsY, statsW, accent);
-    statsY += 56;
-    drawStatTile("Cancelled", str(cancelledCount), x + 20, statsY, statsW, dangerCol);
-    drawStatTile("Diverted", str(divertedCount), x + 34 + statsW, statsY, statsW, warningCol);
+  float statsY = y + 152;
+  float statsW = (w - 54) / 2.0;
+  drawStatTile("On-time", str(onTimeCount), x + 20, statsY, statsW, successCol);
+  drawStatTile("Delayed", str(delayedCount), x + 34 + statsW, statsY, statsW, accent);
 
-    float infoTop = y + 272;
-    drawInfoBlock("Time", buildSelectedTimeSummary(), x + 20, infoTop, w - 40);
-    infoTop += 52;
-    drawInfoBlock("Focus", buildSelectedFocusSummary(), x + 20, infoTop, w - 40);
-    infoTop += 52;
-    drawInfoBlock("Filters", buildSelectedFilterSummary(), x + 20, infoTop, w - 40);
+  statsY += 56;
+  drawStatTile("Cancelled", str(cancelledCount), x + 20, statsY, statsW, dangerCol);
+  drawStatTile("Diverted", str(divertedCount), x + 34 + statsW, statsY, statsW, warningCol);
 
-    drawHintBar(x + 20, y + h - 60, w - 40, 38);
-  }
+  float infoTop = y + 272;
+  float infoX = x + 20;
+  float infoW = w - 40;
+
+  float gapX = 14;
+  float gapY = 18;
+  float rowH = 46;
+  float colW = (infoW - gapX * 2) / 3.0;
+
+  drawInfoBlock("Time",
+                buildSelectedTimeSummary(),
+                infoX,
+                infoTop,
+                colW);
+
+  drawInfoBlock("Carrier",
+                simplifyAnyValue(getSelectedCarrier(), "Any carrier", "Any carrier"),
+                infoX + colW + gapX,
+                infoTop,
+                colW);
+
+  drawInfoBlock("Route",
+                buildRouteSummary(),
+                infoX + (colW + gapX) * 2,
+                infoTop,
+                colW);
+
+  drawInfoBlock("Distance",
+                simplifyAnyValue(getSelectedDistanceBand(), "Any distance", "Any distance"),
+                infoX,
+                infoTop + rowH + gapY,
+                colW);
+
+  drawInfoBlock("Departure bucket",
+                simplifyAnyValue(getSelectedTimeBucket(), "Any departure", "Any departure"),
+                infoX + colW + gapX,
+                infoTop + rowH + gapY,
+                colW);
+
+  drawInfoBlock("Delay / flags",
+                buildDelayAndFlagSummary(),
+                infoX + (colW + gapX) * 2,
+                infoTop + rowH + gapY,
+                colW);
+}
 
   void drawCompactFilterGrid(float x, float y, float availableW) {
     float gapX = 14;
     float colW = (availableW - gapX) / 2.0;
 
-    drawDropdownPair(carrierDropdown, originStateDropdown, x, y, colW, gapX);
+    drawDropdownPair(carrierDropdown(), originStateDropdown(), x, y, colW, gapX);
     y += FIELD_H + FIELD_GAP_Y;
 
-    drawDropdownPair(destinationStateDropdown, distanceDropdown, x, y, colW, gapX);
+    drawDropdownPair(destinationStateDropdown(), distanceDropdown(), x, y, colW, gapX);
     y += FIELD_H + FIELD_GAP_Y;
 
-    drawDropdownPair(timeBucketDropdown, delayToleranceDropdown, x, y, colW, gapX);
+    drawDropdownPair(timeBucketDropdown(), delayToleranceDropdown(), x, y, colW, gapX);
     y += FIELD_H + FIELD_GAP_Y + 2;
 
     drawCheckboxPair(cancelledBoxes[activeTab], divertedBoxes[activeTab], x, y, colW, gapX);
@@ -369,11 +434,10 @@ void drawDropdownOverlays() {
 
     fill(textColor);
     textSize(13);
-    text("matching flights", x + 16, y + 45);
+    text("Flights matching you're filters", x + 16, y + 45);
 
     fill(mutedText);
     textSize(11);
-    text(buildCompactLoadMessage(flightCount), x + w - 180, y + 28);
   }
 
   void drawStatTile(String label, String value, float x, float y, float w, color dotCol) {
@@ -407,17 +471,6 @@ void drawDropdownOverlays() {
     text(value, x, y + 16, w, 28);
   }
 
-  void drawHintBar(float x, float y, float w, float h) {
-    noStroke();
-    fill(color(246, 249, 255));
-    rect(x, y, w, h, 10);
-
-    fill(textColor);
-    textAlign(LEFT, CENTER);
-    textSize(11);
-    text("Best use: " + chartSubtitles[activeTab], x + 12, y + h / 2);
-  }
-
   void drawRangePill(float x, float y, float w, float h) {
     noStroke();
     fill(color(248, 250, 254));
@@ -443,48 +496,31 @@ void drawDropdownOverlays() {
     textSize(12);
     text(label, x, y);
   }
-
-  String buildCompactLoadMessage(int flightCount) {
-    if (flightCount == 0) {
-      return "No matches";
-    }
-    if (flightCount < 75) {
-      return "Very focused";
-    }
-    if (flightCount < 250) {
-      return "Balanced set";
-    }
-    return "Broad search";
-  }
-
+  
   String buildSelectedTimeSummary() {
     return formatMinutes(sliders[activeTab].getStartTotalMinutes()) + " - " + formatMinutes(sliders[activeTab].getEndTotalMinutes());
   }
-
-  String buildSelectedFocusSummary() {
-    String bucket = simplifyAnyValue(getSelectedTimeBucket(), "Any departure", "Any departure bucket");
-    String distance = simplifyAnyValue(getSelectedDistanceBand(), "Any distance", "Any distance");
-    String delay = str(getSelectedDelayTolerance()) + " min max delay";
-    return bucket + " | " + distance + " | " + delay;
-  }
-
-  String buildSelectedFilterSummary() {
-    String line = simplifyAnyValue(getSelectedCarrier(), "Any carrier", "All carriers");
-    line += " | " + simplifyAnyValue(getSelectedOriginState(), "Any origin state", "All origins");
-    line += " -> " + simplifyAnyValue(getSelectedDestinationState(), "Any destination state", "All destinations");
-
-    String flags = buildFlagSummary();
-    if (!flags.equals("default")) {
-      line += " | " + flags;
-    }
-    return line;
-  }
-
+  
   String simplifyAnyValue(String value, String anyLabel, String fallback) {
     if (value == null || value.length() == 0 || value.equals(anyLabel)) {
       return fallback;
     }
     return value;
+  }
+
+  String buildRouteSummary() {
+    String origin = simplifyAnyValue(getSelectedOriginState(), "Any origin state", "Any origin state");
+    String destination = simplifyAnyValue(getSelectedDestinationState(), "Any destination state", "Any destination state");
+    return origin + " to " + destination;
+  }
+
+  String buildDelayAndFlagSummary() {
+    String delayText = getSelectedDelayTolerance() + " mins max delay";
+    String flags = buildFlagSummary();
+    if (flags.equals("default")) {
+      return delayText;
+    }
+    return delayText + ", " + flags;
   }
 
   void handleMousePressed() {
@@ -522,12 +558,12 @@ void drawDropdownOverlays() {
   }
 
   void handleDropdownPressed() {
-    carrierDropdown.handleMousePressed();
-    originStateDropdown.handleMousePressed();
-    destinationStateDropdown.handleMousePressed();
-    distanceDropdown.handleMousePressed();
-    timeBucketDropdown.handleMousePressed();
-    delayToleranceDropdown.handleMousePressed();
+    carrierDropdown().handleMousePressed();
+    originStateDropdown().handleMousePressed();
+    destinationStateDropdown().handleMousePressed();
+    distanceDropdown().handleMousePressed();
+    timeBucketDropdown().handleMousePressed();
+    delayToleranceDropdown().handleMousePressed();
   }
 
   void handleCheckBoxPressed() {
@@ -608,6 +644,12 @@ void drawDropdownOverlays() {
     boolean onlyOnTime = onTimeOnlyBoxes[activeTab].isChecked();
     int toleranceMinutes = getSelectedDelayTolerance();
 
+    String selectedCarrier = getSelectedCarrier();
+    String selectedOriginState = getSelectedOriginState();
+    String selectedDestinationState = getSelectedDestinationState();
+    String selectedDistanceBand = getSelectedDistanceBand();
+    String selectedTimeBucket = getSelectedTimeBucket();
+
     for (int i = 0; i < allFlights.size(); i++) {
       Flight f = allFlights.get(i);
 
@@ -620,19 +662,19 @@ void drawDropdownOverlays() {
       if (!includeDiverted && f.diverted == 1) {
         continue;
       }
-      if (!matchesCarrier(f, getSelectedCarrier())) {
+      if (!matchesCarrier(f, selectedCarrier)) {
         continue;
       }
-      if (!matchesState(f.originStateAbr, getSelectedOriginState(), "Any origin state")) {
+      if (!matchesState(f.originStateAbr, selectedOriginState, "Any origin state")) {
         continue;
       }
-      if (!matchesState(f.destinationStateAbr, getSelectedDestinationState(), "Any destination state")) {
+      if (!matchesState(f.destinationStateAbr, selectedDestinationState, "Any destination state")) {
         continue;
       }
-      if (!matchesDistanceBand(f, getSelectedDistanceBand())) {
+      if (!matchesDistanceBand(f, selectedDistanceBand)) {
         continue;
       }
-      if (!matchesTimeBucket(f, getSelectedTimeBucket())) {
+      if (!matchesTimeBucket(f, selectedTimeBucket)) {
         continue;
       }
       if (!matchesDelayTolerance(f, toleranceMinutes)) {
@@ -739,7 +781,6 @@ void drawDropdownOverlays() {
     if (f.cancelled == 1) {
       return false;
     }
-
     int delay = getDepartureDelayMinutes(f);
     if (delay == Integer.MIN_VALUE) {
       return false;
@@ -794,36 +835,36 @@ void drawDropdownOverlays() {
   }
 
   int getSelectedDelayTolerance() {
-    String selected = delayToleranceDropdown.getSelected();
-    if (selected == null || selected.length() == 0) {
+    String selected = delayToleranceDropdown().getSelected();
+    if (selected == null || selected.length() == 0 || selected.equals("Max delay")) {
       return 0;
     }
     return int(split(selected, ' ')[0]);
   }
 
   String getSelectedCarrier() {
-    return getSelectedOrFallback(carrierDropdown, "Any carrier");
+    return getSelectedOrFallback(carrierDropdown(), "Any carrier", "Carrier");
   }
 
   String getSelectedOriginState() {
-    return getSelectedOrFallback(originStateDropdown, "Any origin state");
+    return getSelectedOrFallback(originStateDropdown(), "Any origin state", "Origin state");
   }
 
   String getSelectedDestinationState() {
-    return getSelectedOrFallback(destinationStateDropdown, "Any destination state");
+    return getSelectedOrFallback(destinationStateDropdown(), "Any destination state", "Destination state");
   }
 
   String getSelectedDistanceBand() {
-    return getSelectedOrFallback(distanceDropdown, "Any distance");
+    return getSelectedOrFallback(distanceDropdown(), "Any distance", "Distance");
   }
 
   String getSelectedTimeBucket() {
-    return getSelectedOrFallback(timeBucketDropdown, "Any departure");
+    return getSelectedOrFallback(timeBucketDropdown(), "Any departure", "Departure bucket");
   }
 
-  String getSelectedOrFallback(Dropdown dropdown, String fallback) {
+  String getSelectedOrFallback(Dropdown dropdown, String fallback, String placeholder) {
     String selected = dropdown.getSelected();
-    if (selected == null || selected.length() == 0) {
+    if (selected == null || selected.length() == 0 || selected.equals(placeholder)) {
       return fallback;
     }
     return selected;
@@ -957,41 +998,43 @@ void drawDropdownOverlays() {
   }
 
   void handleMouseMoved() {
-    carrierDropdown.handleMouseMoved();
-    originStateDropdown.handleMouseMoved();
-    destinationStateDropdown.handleMouseMoved();
-    distanceDropdown.handleMouseMoved();
-    timeBucketDropdown.handleMouseMoved();
-    delayToleranceDropdown.handleMouseMoved();
+    carrierDropdown().handleMouseMoved();
+    originStateDropdown().handleMouseMoved();
+    destinationStateDropdown().handleMouseMoved();
+    distanceDropdown().handleMouseMoved();
+    timeBucketDropdown().handleMouseMoved();
+    delayToleranceDropdown().handleMouseMoved();
   }
+
   void handleMouseDragged() {
     sliders[activeTab].handleMouseDragged();
-    carrierDropdown.handleMouseDragged();
-    originStateDropdown.handleMouseDragged();
-    destinationStateDropdown.handleMouseDragged();
-    distanceDropdown.handleMouseDragged();
-    timeBucketDropdown.handleMouseDragged();
-    delayToleranceDropdown.handleMouseDragged();
+    carrierDropdown().handleMouseDragged();
+    originStateDropdown().handleMouseDragged();
+    destinationStateDropdown().handleMouseDragged();
+    distanceDropdown().handleMouseDragged();
+    timeBucketDropdown().handleMouseDragged();
+    delayToleranceDropdown().handleMouseDragged();
   }
+
   void handleMouseReleased() {
-  sliders[activeTab].handleMouseReleased();
-}
+    sliders[activeTab].handleMouseReleased();
+  }
 
-void handleMouseWheel(float amount) {
-  carrierDropdown.handleMouseWheel(amount);
-  originStateDropdown.handleMouseWheel(amount);
-  destinationStateDropdown.handleMouseWheel(amount);
-  distanceDropdown.handleMouseWheel(amount);
-  timeBucketDropdown.handleMouseWheel(amount);
-  delayToleranceDropdown.handleMouseWheel(amount);
-}
+  void handleMouseWheel(float amount) {
+    carrierDropdown().handleMouseWheel(amount);
+    originStateDropdown().handleMouseWheel(amount);
+    destinationStateDropdown().handleMouseWheel(amount);
+    distanceDropdown().handleMouseWheel(amount);
+    timeBucketDropdown().handleMouseWheel(amount);
+    delayToleranceDropdown().handleMouseWheel(amount);
+  }
 
-class PanelRects {
-  float bodyY;
-  float bodyH;
-  float filterX;
-  float filterW;
-  float previewX;
-  float previewW;
+  class PanelRects {
+    float bodyY;
+    float bodyH;
+    float filterX;
+    float filterW;
+    float previewX;
+    float previewW;
   }
 }

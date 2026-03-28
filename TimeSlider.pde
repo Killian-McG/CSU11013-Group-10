@@ -28,7 +28,7 @@ class TimeSlider {
     activeKnob = 0;
 
     trackH = 6;
-    knobR = 10;
+    knobR = 6;
 
     trackColor = color(220);
     fillColor = color(70, 120, 230);
@@ -72,7 +72,7 @@ class TimeSlider {
     strokeWeight(1);
 
     for (int h = 0; h <= 23; h++) {
-      float tx = x + (h / 23.0) * w;
+      float tx = getKnobX(h * 60);
       float th = (h % 6 == 0) ? 6 : 3;
 
       line(tx, y + 8, tx, y + 8 + th);

@@ -1,22 +1,27 @@
 class ScreenManager {
 
   SearchScreen searchScreen;
-  DataScreen dataScreen;
+  DataScreen   dataScreen;
   FlightFilter flightFilter;
   ArrayList<Flight> allFlights;
- 
+  String currentChart = "histogram";
 
   boolean onSearch = true;
 
   ScreenManager(ArrayList<Flight> allFlights) {
     this.allFlights = allFlights;
+
     searchScreen = new SearchScreen();
-    dataScreen = new DataScreen();
+    dataScreen   = new DataScreen();
     flightFilter = new FlightFilter();
   }
-  
+
   void handleMouseWheel(float amount) {
-    searchScreen.handleMouseWheel(amount);
+    if (onSearch) {
+      searchScreen.handleMouseWheel(amount);
+    } else {
+      dataScreen.handleMouseWheel(amount);
+    }
   }
 
   void display() {
@@ -24,11 +29,7 @@ class ScreenManager {
       searchScreen.display();
       if (searchScreen.searchFired) {
         searchScreen.searchFired = false;
-        goToData(searchScreen.pendingChartKey,
-                 searchScreen.pendingStartMin,
-                 searchScreen.pendingEndMin,
-                 searchScreen.pendingIncludeCancelled,
-                 searchScreen.pendingDelayTolerance);
+        goToData(searchScreen.pendingChartKey);
       }
     } else {
       dataScreen.display();
@@ -39,32 +40,41 @@ class ScreenManager {
     }
   }
 
-  void goToData(String chartKey, int startMin, int endMin,
-                boolean includeCancelled, int delayTolerance) {
-    flights = flightFilter.filter(allFlights, startMin, endMin, includeCancelled, delayTolerance);
+  void goToData(String chartKey) {
+    currentChart  = chartKey;
+    flights       = searchScreen.buildFilteredFlightsFromCurrentSelections();
     dataScreen.setChart(chartKey);
-    onSearch = false;
+    onSearch      = false;
   }
 
   void goToSearch() {
-    flights = allFlights;
+    flights  = allFlights;
     onSearch = true;
   }
 
   void handleMousePressed() {
-    if (onSearch) searchScreen.handleMousePressed();
-    else dataScreen.handleMousePressed();
+    if (onSearch) {
+      searchScreen.handleMousePressed();
+    } else {
+      dataScreen.handleMousePressed();
+    }
   }
 
   void handleMouseMoved() {
-    if (onSearch) searchScreen.handleMouseMoved();
+    if (onSearch) {
+      searchScreen.handleMouseMoved();
+    }
   }
 
   void handleMouseDragged() {
-    if (onSearch) searchScreen.handleMouseDragged();
+    if (onSearch) {
+      searchScreen.handleMouseDragged();
+    }
   }
 
   void handleMouseReleased() {
-    if (onSearch) searchScreen.handleMouseReleased();
+    if (onSearch) {
+      searchScreen.handleMouseReleased();
+    }
   }
 }

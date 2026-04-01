@@ -2,19 +2,20 @@ import processing.event.MouseEvent;
 
 ArrayList<Flight> allFlights;
 ArrayList<Flight> flights;
-ScreenManager     screenManager;
+ScreenManager screenManager;
 
 void setup() {
   size(1200, 650);
   textSize(16);
 
   allFlights = new ArrayList<Flight>();
-  Table table = loadTable("data/flights2k.csv", "header");
+  Table table = loadTable("data/flights10k.csv", "header");
+
   for (TableRow row : table.rows()) {
     allFlights.add(new Flight(row));
   }
 
-  flights       = allFlights;
+  flights = allFlights;
   screenManager = new ScreenManager(allFlights);
 }
 

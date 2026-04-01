@@ -15,7 +15,9 @@ class Flight {
   int cancelled;
   int diverted;
   int distance;
-  
+
+  int scheduledDepartureMinutes;
+  int departureMinutes;
 
   Flight(TableRow row) {
     date = row.getString("FL_DATE");
@@ -30,15 +32,32 @@ class Flight {
     scheduledDepartureTime = row.getString("CRS_DEP_TIME");
     departureTime = row.getString("DEP_TIME");
     scheduledArrivalTime = row.getString("CRS_ARR_TIME");
-    arrivalTime= row.getString("ARR_TIME");
+    arrivalTime = row.getString("ARR_TIME");
     cancelled = row.getInt("CANCELLED");
     diverted = row.getInt("DIVERTED");
     distance = row.getInt("DISTANCE");
+
+    scheduledDepartureMinutes = parseHHMM(scheduledDepartureTime);
+    departureMinutes = parseHHMM(departureTime);
   }
-  
-  
 
   String toString() {
     return departureTime;
+  }
+}
+
+int parseHHMM(String s) {
+  if (s == null) return -1;
+  s = trim(s);
+  if (s.length() == 0) return -1;
+
+  try {
+    int hhmm = int(s);
+    int h = hhmm / 100;
+    int m = hhmm % 100;
+    if (h < 0 || h > 23 || m < 0 || m > 59) return -1;
+    return h * 60 + m;
+  } catch (Exception e) {
+    return -1;
   }
 }

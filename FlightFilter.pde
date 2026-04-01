@@ -1,7 +1,6 @@
 class FlightFilter {
-
   ArrayList<Flight> filter(ArrayList<Flight> all, int startMinutes, int endMinutes,
-                           boolean includeCancelled, int delayToleranceMins) {
+      boolean includeCancelled, int delayToleranceMins) {
     ArrayList<Flight> result = new ArrayList<Flight>();
 
     for (int i = 0; i < all.size(); i++) {

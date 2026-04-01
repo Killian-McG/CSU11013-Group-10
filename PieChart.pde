@@ -1,7 +1,5 @@
 class PieChart {
-  float x;
-  float y;
-  float diameter;
+  float x, y, diameter;
 
   color onTimeColor;
   color lateColor;
@@ -38,90 +36,25 @@ class PieChart {
     hoverMouseY = my;
   }
 
-  int parseTimeToMinutes(String value) {
-    if (value == null) {
-      return -1;
-    }
-
-    String cleaned = trim(value);
-    if (cleaned.length() == 0) {
-      return -1;
-    }
-
-    if (cleaned.indexOf(':') != -1) {
-      String[] parts = split(cleaned, ':');
-      if (parts.length >= 2) {
-        try {
-          int h = Integer.parseInt(parts[0]);
-          int m = Integer.parseInt(parts[1]);
-          if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-            return h * 60 + m;
-          }
-        }
-        catch (Exception e) {
-          return -1;
-        }
-      }
-      return -1;
-    }
-
-    String digits = "";
-    for (int i = 0; i < cleaned.length(); i++) {
-      char c = cleaned.charAt(i);
-      if (c >= '0' && c <= '9') {
-        digits += c;
-      }
-    }
-
-    if (digits.length() == 0) {
-      return -1;
-    }
-
-    try {
-      int hhmm = Integer.parseInt(digits);
-      int h = hhmm / 100;
-      int m = hhmm % 100;
-      if (h < 0 || h > 23 || m < 0 || m > 59) {
-        return -1;
-      }
-      return h * 60 + m;
-    }
-    catch (Exception e) {
-      return -1;
-    }
-  }
-
   String formatPercent(float value) {
     return nf(value * 100.0, 0, 1) + "%";
   }
 
   String getSliceLabel(int index) {
-    if (index == 0) {
-      return "On Time";
-    }
-    if (index == 1) {
-      return "Late";
-    }
+    if (index == 0) return "On Time";
+    if (index == 1) return "Late";
     return "Cancelled";
   }
 
   color getSliceColor(int index) {
-    if (index == 0) {
-      return onTimeColor;
-    }
-    if (index == 1) {
-      return lateColor;
-    }
+    if (index == 0) return onTimeColor;
+    if (index == 1) return lateColor;
     return cancelledColor;
   }
 
   float normalizeAngle(float angle) {
-    while (angle < 0) {
-      angle += TWO_PI;
-    }
-    while (angle >= TWO_PI) {
-      angle -= TWO_PI;
-    }
+    while (angle < 0) angle += TWO_PI;
+    while (angle >= TWO_PI) angle -= TWO_PI;
     return angle;
   }
 
@@ -129,10 +62,7 @@ class PieChart {
     angle = normalizeAngle(angle);
     start = normalizeAngle(start);
     end = normalizeAngle(end);
-
-    if (start <= end) {
-      return angle >= start && angle < end;
-    }
+    if (start <= end) return angle >= start && angle < end;
     return angle >= start || angle < end;
   }
 
@@ -147,20 +77,14 @@ class PieChart {
     float contentW = max(textWidth(line1), max(textWidth(line2), textWidth(line3)));
     float boxW = contentW + 24;
     float boxH = 66;
-
-    float boxX = hoverMouseX + 14;
-    float boxY = hoverMouseY - boxH - 10;
-
-    boxX = constrain(boxX, graphX + 6, graphX + graphW - boxW - 6);
-    boxY = constrain(boxY, graphY + 6, graphY + graphH - boxH - 6);
+    float boxX = constrain(hoverMouseX + 14, graphX + 6, graphX + graphW - boxW - 6);
+    float boxY = constrain(hoverMouseY - boxH - 10, graphY + 6, graphY + graphH - boxH - 6);
 
     noStroke();
     fill(0, 20);
     rect(boxX + 3, boxY + 3, boxW, boxH, 8);
-
     fill(255);
     rect(boxX, boxY, boxW, boxH, 8);
-
     stroke(220);
     strokeWeight(1);
     noFill();
@@ -211,25 +135,18 @@ class PieChart {
     rectMode(CORNER);
     hoveredSlice = -1;
 
-    int onTime = 0;
-    int late = 0;
-    int cancelledCount = 0;
+    int onTime = 0, late = 0, cancelledCount = 0;
 
     for (int i = 0; i < flights.size(); i++) {
       Flight f = flights.get(i);
-
       if (f.cancelled == 1) {
         cancelledCount++;
       } else {
         int dep = parseTimeToMinutes(f.departureTime);
         int sched = parseTimeToMinutes(f.scheduledDepartureTime);
-
         if (dep >= 0 && sched >= 0) {
-          if (dep <= sched) {
-            onTime++;
-          } else {
-            late++;
-          }
+          if (dep <= sched) onTime++;
+          else late++;
         }
       }
     }
@@ -246,7 +163,6 @@ class PieChart {
       fill(255);
       noStroke();
       rect(80, 70, width - 120, height - 150, 8);
-
       fill(mutedText);
       textAlign(CENTER, CENTER);
       textSize(16);
@@ -254,21 +170,15 @@ class PieChart {
       return;
     }
 
-    float[] fractions = new float[3];
-    fractions[0] = onTime / float(totalCount);
-    fractions[1] = late / float(totalCount);
-    fractions[2] = cancelledCount / float(totalCount);
+    float[] fractions = {
+      onTime / float(totalCount),
+      late / float(totalCount),
+      cancelledCount / float(totalCount)
+    };
+    int[] counts = { onTime, late, cancelledCount };
 
-    int[] counts = new int[3];
-    counts[0] = onTime;
-    counts[1] = late;
-    counts[2] = cancelledCount;
-
-    float leftMargin = 80;
-    float rightMargin = 50;
-    float topMargin = 70;
-    float bottomMargin = 80;
-
+    float leftMargin = 80, rightMargin = 50;
+    float topMargin = 70, bottomMargin = 80;
     float graphX = leftMargin;
     float graphY = topMargin;
     float graphW = width - leftMargin - rightMargin;
@@ -280,8 +190,7 @@ class PieChart {
 
     float legendW = min(230, graphW * 0.34);
     float pieAreaW = graphW - legendW - 28;
-    float pieDiameter = min(diameter, min(graphH - 36, pieAreaW - 30));
-    pieDiameter = max(140, pieDiameter);
+    float pieDiameter = max(140, min(diameter, min(graphH - 36, pieAreaW - 30)));
 
     float pieX = graphX + pieAreaW * 0.5;
     float pieY = graphY + graphH * 0.5 + 8;
@@ -295,12 +204,8 @@ class PieChart {
 
     float dx = hoverMouseX - pieX;
     float dy = hoverMouseY - pieY;
-    float distToCenter = sqrt(dx * dx + dy * dy);
-
-    if (distToCenter <= radius) {
-      float mouseAngle = atan2(dy, dx);
-      mouseAngle = normalizeAngle(mouseAngle);
-
+    if (sqrt(dx * dx + dy * dy) <= radius) {
+      float mouseAngle = normalizeAngle(atan2(dy, dx));
       float startAngle = 0;
       for (int i = 0; i < 3; i++) {
         float sweep = fractions[i] * TWO_PI;
@@ -316,17 +221,24 @@ class PieChart {
     for (int i = 0; i < 3; i++) {
       float sweep = fractions[i] * TWO_PI;
       if (sweep <= 0) {
+        startAngle += sweep;
         continue;
       }
 
       float midAngle = startAngle + sweep / 2.0;
       float offset = hoveredSlice == i ? 8 : 0;
-      float sliceX = pieX + cos(midAngle) * offset;
-      float sliceY = pieY + sin(midAngle) * offset;
 
       noStroke();
       fill(getSliceColor(i));
-      arc(sliceX, sliceY, pieDiameter, pieDiameter, startAngle, startAngle + sweep, PIE);
+      arc(
+        pieX + cos(midAngle) * offset,
+        pieY + sin(midAngle) * offset,
+        pieDiameter,
+        pieDiameter,
+        startAngle,
+        startAngle + sweep,
+        PIE
+      );
 
       startAngle += sweep;
     }
@@ -339,7 +251,6 @@ class PieChart {
     textAlign(CENTER, CENTER);
     textSize(20);
     text(str(totalCount), pieX, pieY - 6);
-
     fill(mutedText);
     textSize(11);
     text("total flights", pieX, pieY + 16);

@@ -17,8 +17,8 @@ class ScatterPlot {
 
   float hoverMouseX = -1;
   float hoverMouseY = -1;
-
   int hoveredIndex = -1;
+
   ArrayList<ScatterPoint> points;
 
   ScatterPlot() {
@@ -32,14 +32,13 @@ class ScatterPlot {
 
   class ScatterPoint {
     Flight flight;
-    float x;
-    float y;
-    int scheduledMinutes;
-    int actualMinutes;
-    int delayMinutes;
+    float x, y;
+    int scheduledMinutes, actualMinutes, delayMinutes;
     color pointColor;
 
-    ScatterPoint(Flight flight, float x, float y, int scheduledMinutes, int actualMinutes, int delayMinutes, color pointColor) {
+    ScatterPoint(Flight flight, float x, float y,
+        int scheduledMinutes, int actualMinutes, int delayMinutes,
+        color pointColor) {
       this.flight = flight;
       this.x = x;
       this.y = y;
@@ -50,110 +49,39 @@ class ScatterPlot {
     }
   }
 
-  int parseTimeToMinutes(String value) {
-    if (value == null) {
-      return -1;
-    }
-
-    String cleaned = trim(value);
-    if (cleaned.length() == 0) {
-      return -1;
-    }
-
-    if (cleaned.indexOf(':') != -1) {
-      String[] parts = split(cleaned, ':');
-      if (parts.length >= 2) {
-        try {
-          int h = Integer.parseInt(parts[0]);
-          int m = Integer.parseInt(parts[1]);
-          if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-            return h * 60 + m;
-          }
-        }
-        catch (Exception e) {
-          return -1;
-        }
-      }
-      return -1;
-    }
-
-    String digits = "";
-    for (int i = 0; i < cleaned.length(); i++) {
-      char c = cleaned.charAt(i);
-      if (c >= '0' && c <= '9') {
-        digits += c;
-      }
-    }
-
-    if (digits.length() == 0) {
-      return -1;
-    }
-
-    try {
-      int hhmm = Integer.parseInt(digits);
-      int h = hhmm / 100;
-      int m = hhmm % 100;
-      if (h < 0 || h > 23 || m < 0 || m > 59) {
-        return -1;
-      }
-      return h * 60 + m;
-    }
-    catch (Exception e) {
-      return -1;
-    }
-  }
-
   float timeToFraction(int minutes) {
     return constrain(minutes / 1439.0, 0, 1);
   }
 
-  int getAdjustedDelay(int scheduledMinutes, int actualMinutes) {
-    int diff = actualMinutes - scheduledMinutes;
-    if (diff < -720) {
-      diff += 1440;
-    } else if (diff > 720) {
-      diff -= 1440;
-    }
+  int getAdjustedDelay(int scheduled, int actual) {
+    int diff = actual - scheduled;
+    if (diff < -720) diff += 1440;
+    else if (diff > 720) diff -= 1440;
     return diff;
   }
 
   String formatTimeLabel(int minutes) {
-    if (minutes < 0) {
-      return "N/A";
-    }
-    int h = minutes / 60;
-    int m = minutes % 60;
-    return nf(h, 2) + ":" + nf(m, 2);
+    if (minutes < 0) return "N/A";
+    return nf(minutes / 60, 2) + ":" + nf(minutes % 60, 2);
   }
 
   String formatDelay(int minutes) {
-    if (minutes > 0) {
-      return "+" + minutes + " min";
-    }
-    if (minutes < 0) {
-      return str(minutes) + " min";
-    }
+    if (minutes > 0) return "+" + minutes + " min";
+    if (minutes < 0) return str(minutes) + " min";
     return "0 min";
   }
 
   String safeCode(String value, String fallback) {
-    if (value == null) {
-      return fallback;
-    }
+    if (value == null) return fallback;
     String cleaned = trim(value);
-    if (cleaned.length() == 0) {
-      return fallback;
-    }
-    return cleaned;
+    return cleaned.length() == 0 ? fallback : cleaned;
   }
 
   color getCarrierColor(String carrier) {
     if (carrier != null) {
       String cleaned = trim(carrier);
       for (int i = 0; i < carrierNames.length - 1; i++) {
-        if (carrierNames[i].equals(cleaned)) {
-          return carrierColors[i];
-        }
+        if (carrierNames[i].equals(cleaned)) return carrierColors[i];
       }
     }
     return carrierColors[carrierColors.length - 1];
@@ -164,17 +92,11 @@ class ScatterPlot {
 
     for (int i = 0; i < data.size(); i++) {
       Flight f = data.get(i);
-
-      if (f.cancelled == 1) {
-        continue;
-      }
+      if (f.cancelled == 1) continue;
 
       int scheduledMinutes = parseTimeToMinutes(f.scheduledDepartureTime);
       int actualMinutes = parseTimeToMinutes(f.departureTime);
-
-      if (scheduledMinutes < 0 || actualMinutes < 0) {
-        continue;
-      }
+      if (scheduledMinutes < 0 || actualMinutes < 0) continue;
 
       float px = graphX + timeToFraction(scheduledMinutes) * graphW;
       float py = graphY + (1 - timeToFraction(actualMinutes)) * graphH;
@@ -195,7 +117,6 @@ class ScatterPlot {
   void findHoveredPoint() {
     hoveredIndex = -1;
     float bestDist = 10;
-
     for (int i = 0; i < points.size(); i++) {
       ScatterPoint p = points.get(i);
       float d = dist(hoverMouseX, hoverMouseY, p.x, p.y);
@@ -212,7 +133,6 @@ class ScatterPlot {
 
     stroke(228);
     strokeWeight(1);
-
     for (int i = 0; i < tickMinutes.length; i++) {
       float frac = timeToFraction(tickMinutes[i]);
       float tx = graphX + frac * graphW;
@@ -224,10 +144,8 @@ class ScatterPlot {
       fill(85);
       noStroke();
       textSize(11);
-
       textAlign(CENTER, TOP);
       text(tickLabels[i], tx, graphY + graphH + 8);
-
       textAlign(RIGHT, CENTER);
       text(tickLabels[i], graphX - 8, ty);
 
@@ -269,16 +187,12 @@ class ScatterPlot {
     float rowGap = 22;
 
     for (int i = 0; i < carrierNames.length; i++) {
-      int col = i % 2;
-      int row = i / 2;
-
-      float lx = startX + col * colGap;
-      float ly = startY + row * rowGap;
+      float lx = startX + (i % 2) * colGap;
+      float ly = startY + (i / 2) * rowGap;
 
       noStroke();
       fill(carrierColors[i]);
       ellipse(lx + 5, ly + 7, 8, 8);
-
       fill(70);
       textAlign(LEFT, CENTER);
       textSize(11);
@@ -288,10 +202,7 @@ class ScatterPlot {
 
   void drawPoints() {
     for (int i = 0; i < points.size(); i++) {
-      if (i == hoveredIndex) {
-        continue;
-      }
-
+      if (i == hoveredIndex) continue;
       ScatterPoint p = points.get(i);
       noStroke();
       fill(red(p.pointColor), green(p.pointColor), blue(p.pointColor), 150);
@@ -310,28 +221,25 @@ class ScatterPlot {
   void drawTooltip(ScatterPoint p, float graphX, float graphY, float graphW, float graphH) {
     rectMode(CORNER);
 
-    String line1 = safeCode(p.flight.carrier, "Other") + "   " + safeCode(p.flight.origin, "N/A") + " -> " + safeCode(p.flight.destination, "N/A");
-    String line2 = "Scheduled: " + formatTimeLabel(p.scheduledMinutes) + "   Actual: " + formatTimeLabel(p.actualMinutes);
+    String line1 = safeCode(p.flight.carrier, "Other") + "   "
+        + safeCode(p.flight.origin, "N/A") + " -> "
+        + safeCode(p.flight.destination, "N/A");
+    String line2 = "Scheduled: " + formatTimeLabel(p.scheduledMinutes)
+        + "   Actual: " + formatTimeLabel(p.actualMinutes);
     String line3 = "Delay: " + formatDelay(p.delayMinutes);
 
     textSize(12);
     float contentW = max(textWidth(line1), max(textWidth(line2), textWidth(line3)));
     float boxW = contentW + 24;
     float boxH = 66;
-
-    float boxX = hoverMouseX + 14;
-    float boxY = hoverMouseY - boxH - 10;
-
-    boxX = constrain(boxX, graphX + 6, graphX + graphW - boxW - 6);
-    boxY = constrain(boxY, graphY + 6, graphY + graphH - boxH - 6);
+    float boxX = constrain(hoverMouseX + 14, graphX + 6, graphX + graphW - boxW - 6);
+    float boxY = constrain(hoverMouseY - boxH - 10, graphY + 6, graphY + graphH - boxH - 6);
 
     noStroke();
     fill(0, 20);
     rect(boxX + 3, boxY + 3, boxW, boxH, 8);
-
     fill(255);
     rect(boxX, boxY, boxW, boxH, 8);
-
     stroke(220);
     strokeWeight(1);
     noFill();
@@ -365,7 +273,6 @@ class ScatterPlot {
 
     buildPoints(data, graphX, graphY, graphW, graphH);
     findHoveredPoint();
-
     drawTitle();
 
     noStroke();
@@ -395,10 +302,7 @@ class ScatterPlot {
     float dx = x2 - x1;
     float dy = y2 - y1;
     float total = sqrt(dx * dx + dy * dy);
-
-    if (total == 0) {
-      return;
-    }
+    if (total == 0) return;
 
     float nx = dx / total;
     float ny = dy / total;
@@ -408,7 +312,6 @@ class ScatterPlot {
     while (distCovered < total) {
       float segLen = drawing ? dashLen : gapLen;
       float end = min(distCovered + segLen, total);
-
       if (drawing) {
         line(
           x1 + nx * distCovered,
@@ -417,7 +320,6 @@ class ScatterPlot {
           y1 + ny * end
         );
       }
-
       distCovered = end;
       drawing = !drawing;
     }

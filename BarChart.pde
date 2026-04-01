@@ -1,4 +1,5 @@
 class BarChart {
+
   int NUM_AIRPORTS = 20;
 
   color barColor;
@@ -16,10 +17,7 @@ class BarChart {
   int[] counts;
   int maxCount;
 
-  float marginL;
-  float marginR;
-  float marginT;
-  float marginB;
+  float marginL, marginR, marginT, marginB;
 
   BarChart() {
     barColor = color(100, 140, 220);
@@ -32,7 +30,6 @@ class BarChart {
     hoverMouseX = -1;
     hoverMouseY = -1;
     hoveredIndex = -1;
-
     maxCount = 1;
 
     marginL = 76;
@@ -47,29 +44,19 @@ class BarChart {
   }
 
   String cleanCode(String value) {
-    if (value == null) {
-      return null;
-    }
+    if (value == null) return null;
     String cleaned = trim(value);
-    if (cleaned.length() == 0) {
-      return null;
-    }
-    return cleaned;
+    return cleaned.length() == 0 ? null : cleaned;
   }
 
   void computeCounts(ArrayList<Flight> data) {
     java.util.HashMap<String, Integer> map = new java.util.HashMap<String, Integer>();
 
     for (int i = 0; i < data.size(); i++) {
-      Flight f = data.get(i);
-      String origin = cleanCode(f.origin);
+      String origin = cleanCode(data.get(i).origin);
       if (origin != null) {
         Integer current = map.get(origin);
-        if (current == null) {
-          map.put(origin, 1);
-        } else {
-          map.put(origin, current + 1);
-        }
+        map.put(origin, current == null ? 1 : current + 1);
       }
     }
 
@@ -85,46 +72,34 @@ class BarChart {
     int n = min(NUM_AIRPORTS, entries.size());
     airports = new String[n];
     counts = new int[n];
-
     maxCount = 1;
 
     for (int i = 0; i < n; i++) {
       airports[i] = entries.get(i).getKey();
       counts[i] = entries.get(i).getValue();
-      if (counts[i] > maxCount) {
-        maxCount = counts[i];
-      }
+      if (counts[i] > maxCount) maxCount = counts[i];
     }
   }
 
   float getNiceStep(float value) {
-    if (value <= 0) {
-      return 1;
-    }
-
+    if (value <= 0) return 1;
     float exponent = pow(10, floor(log(value) / log(10)));
     float fraction = value / exponent;
 
-    if (fraction <= 1) {
-      return 1 * exponent;
-    } else if (fraction <= 2) {
-      return 2 * exponent;
-    } else if (fraction <= 5) {
-      return 5 * exponent;
-    } else {
-      return 10 * exponent;
-    }
+    if (fraction <= 1) return 1 * exponent;
+    if (fraction <= 2) return 2 * exponent;
+    if (fraction <= 5) return 5 * exponent;
+    return 10 * exponent;
   }
 
   int getTotalFlights() {
-    if (counts == null) {
-      return 0;
-    }
+    if (counts == null) return 0;
 
     int total = 0;
     for (int i = 0; i < counts.length; i++) {
       total += counts[i];
     }
+
     return total;
   }
 
@@ -133,18 +108,17 @@ class BarChart {
 
     String line1 = code;
     String line2 = count + (count == 1 ? " flight" : " flights");
-    String line3 = total > 0 ? nf((count * 100.0) / total, 0, 1) + "% of shown total" : "0.0% of shown total";
+    String line3 = total > 0 
+      ? nf((count * 100.0) / total, 0, 1) + "% of shown total"
+      : "0.0% of shown total";
 
     textSize(12);
     float contentW = max(textWidth(line1), max(textWidth(line2), textWidth(line3)));
     float boxW = contentW + 24;
     float boxH = 66;
 
-    float boxX = hoverMouseX + 14;
-    float boxY = hoverMouseY - boxH - 10;
-
-    boxX = constrain(boxX, graphX + 6, graphX + graphW - boxW - 6);
-    boxY = constrain(boxY, graphY + 6, graphY + graphH - boxH - 6);
+    float boxX = constrain(hoverMouseX + 14, graphX + 6, graphX + graphW - boxW - 6);
+    float boxY = constrain(hoverMouseY - boxH - 10, graphY + 6, graphY + graphH - boxH - 6);
 
     noStroke();
     fill(0, 20);
@@ -160,8 +134,10 @@ class BarChart {
 
     fill(textColor);
     noStroke();
+
     textAlign(LEFT, TOP);
     textSize(12);
+
     text(line1, boxX + 12, boxY + 10);
     text(line2, boxX + 12, boxY + 29);
     text(line3, boxX + 12, boxY + 48);
@@ -170,8 +146,10 @@ class BarChart {
   void drawTitle() {
     fill(textColor);
     noStroke();
+
     textAlign(CENTER, CENTER);
     textSize(22);
+
     text("Flights by Origin Airport", width / 2, 30);
   }
 
@@ -181,12 +159,15 @@ class BarChart {
 
     for (int i = 0; i <= stepCount; i++) {
       float y = map(i, 0, stepCount, graphY + graphH, graphY);
+
       line(graphX, y, graphX + graphW, y);
 
       fill(85);
       noStroke();
+
       textAlign(RIGHT, CENTER);
       textSize(11);
+
       text(str(int(i * yStep)), graphX - 10, y);
 
       stroke(gridColor);
@@ -197,28 +178,31 @@ class BarChart {
   void drawAxes(float graphX, float graphY, float graphW, float graphH) {
     stroke(60);
     strokeWeight(1.5);
+
     line(graphX, graphY, graphX, graphY + graphH);
     line(graphX, graphY + graphH, graphX + graphW, graphY + graphH);
 
     fill(40);
     noStroke();
+
     textAlign(CENTER, CENTER);
     textSize(14);
+
     text("Origin Airport", graphX + graphW / 2, height - 25);
 
     pushMatrix();
     translate(24, graphY + graphH / 2);
     rotate(-HALF_PI);
+
     textAlign(CENTER, CENTER);
     text("Number of Flights", 0, 0);
+
     popMatrix();
   }
 
   void drawBars(float graphX, float graphY, float graphW, float graphH, float yMax) {
     int n = airports.length;
-    if (n == 0) {
-      return;
-    }
+    if (n == 0) return;
 
     float slotWidth = graphW / float(n);
     float gap = min(12, slotWidth * 0.22);
@@ -234,12 +218,13 @@ class BarChart {
       float barX = graphX + i * slotWidth + (slotWidth - barWidth) / 2.0;
       float barY = graphY + graphH - barHeight;
 
-      boolean isHovered = hoverMouseX >= barX && hoverMouseX <= barX + barWidth &&
-        hoverMouseY >= barY && hoverMouseY <= graphY + graphH;
+      boolean isHovered =
+        hoverMouseX >= barX &&
+        hoverMouseX <= barX + barWidth &&
+        hoverMouseY >= barY &&
+        hoverMouseY <= graphY + graphH;
 
-      if (isHovered) {
-        hoveredIndex = i;
-      }
+      if (isHovered) hoveredIndex = i;
 
       noStroke();
       fill(isHovered ? barHoverColor : barColor);
@@ -262,18 +247,14 @@ class BarChart {
       if (i % labelInterval == 0) {
         fill(60);
         noStroke();
+
         textAlign(CENTER, TOP);
         textSize(10);
 
-        String label = airports[i];
-        if (label == null) {
-          label = "";
-        }
-        if (label.length() > 6) {
-          label = label.substring(0, 6);
-        }
+        String lbl = airports[i] != null ? airports[i] : "";
+        if (lbl.length() > 6) lbl = lbl.substring(0, 6);
 
-        text(label, barX + barWidth / 2, graphY + graphH + 8);
+        text(lbl, barX + barWidth / 2, graphY + graphH + 8);
       }
     }
   }
@@ -281,8 +262,8 @@ class BarChart {
   void drawBarChart(ArrayList<Flight> data) {
     background(bgColor);
     rectMode(CORNER);
-    computeCounts(data);
 
+    computeCounts(data);
     drawTitle();
 
     float graphX = marginL;
@@ -298,6 +279,7 @@ class BarChart {
       fill(mutedText);
       textAlign(CENTER, CENTER);
       textSize(16);
+
       text("No data to display", width / 2, height / 2);
       return;
     }

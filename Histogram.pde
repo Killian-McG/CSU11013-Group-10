@@ -18,92 +18,26 @@ class Histogram {
   }
 
   void setData(ArrayList<Flight> data) {
-    for (int i = 0; i < 24; i++) {
-      hourCounts[i] = 0;
-    }
+    for (int i = 0; i < 24; i++) hourCounts[i] = 0;
 
     for (int i = 0; i < data.size(); i++) {
       Flight f = data.get(i);
-      int hour = getHourFromTime(f.scheduledDepartureTime);
-      if (hour >= 0 && hour < 24) {
-        hourCounts[hour]++;
+      int minutes = parseTimeToMinutes(f.scheduledDepartureTime);
+      if (minutes >= 0) {
+        int hour = minutes / 60;
+        if (hour >= 0 && hour < 24) hourCounts[hour]++;
       }
-    }
-  }
-
-  int getHourFromTime(String time) {
-    if (time == null) {
-      return -1;
-    }
-
-    String cleaned = trim(time);
-    if (cleaned.length() == 0) {
-      return -1;
-    }
-
-    if (cleaned.indexOf(':') != -1) {
-      String[] parts = split(cleaned, ':');
-      if (parts.length > 0) {
-        try {
-          int hour = Integer.parseInt(parts[0]);
-          if (hour >= 0 && hour < 24) {
-            return hour;
-          }
-        }
-        catch (Exception e) {
-        }
-      }
-      return -1;
-    }
-
-    String digits = "";
-    for (int i = 0; i < cleaned.length(); i++) {
-      char c = cleaned.charAt(i);
-      if (c >= '0' && c <= '9') {
-        digits += c;
-      }
-    }
-
-    if (digits.length() == 0) {
-      return -1;
-    }
-
-    try {
-      if (digits.length() <= 2) {
-        int hour = Integer.parseInt(digits);
-        return hour >= 0 && hour < 24 ? hour : -1;
-      }
-
-      if (digits.length() == 3) {
-        int hour = Integer.parseInt(digits.substring(0, 1));
-        return hour >= 0 && hour < 24 ? hour : -1;
-      }
-
-      int hour = Integer.parseInt(digits.substring(0, 2));
-      return hour >= 0 && hour < 24 ? hour : -1;
-    }
-    catch (Exception e) {
-      return -1;
     }
   }
 
   float getNiceStep(float value) {
-    if (value <= 0) {
-      return 1;
-    }
-
+    if (value <= 0) return 1;
     float exponent = pow(10, floor(log(value) / log(10)));
     float fraction = value / exponent;
-
-    if (fraction <= 1) {
-      return 1 * exponent;
-    } else if (fraction <= 2) {
-      return 2 * exponent;
-    } else if (fraction <= 5) {
-      return 5 * exponent;
-    } else {
-      return 10 * exponent;
-    }
+    if (fraction <= 1) return 1 * exponent;
+    if (fraction <= 2) return 2 * exponent;
+    if (fraction <= 5) return 5 * exponent;
+    return 10 * exponent;
   }
 
   String getHourLabel(int hour) {
@@ -112,18 +46,14 @@ class Histogram {
 
   int getTotalFlights() {
     int total = 0;
-    for (int i = 0; i < 24; i++) {
-      total += hourCounts[i];
-    }
+    for (int i = 0; i < 24; i++) total += hourCounts[i];
     return total;
   }
 
   int getMaxCount() {
     int maxCount = 1;
     for (int i = 0; i < 24; i++) {
-      if (hourCounts[i] > maxCount) {
-        maxCount = hourCounts[i];
-      }
+      if (hourCounts[i] > maxCount) maxCount = hourCounts[i];
     }
     return maxCount;
   }
@@ -139,20 +69,14 @@ class Histogram {
     float contentW = max(textWidth(line1), max(textWidth(line2), textWidth(line3)));
     float boxW = contentW + 24;
     float boxH = 66;
-
-    float boxX = hoverMouseX + 14;
-    float boxY = hoverMouseY - boxH - 10;
-
-    boxX = constrain(boxX, graphX + 6, graphX + graphW - boxW - 6);
-    boxY = constrain(boxY, graphY + 6, graphY + graphH - boxH - 6);
+    float boxX = constrain(hoverMouseX + 14, graphX + 6, graphX + graphW - boxW - 6);
+    float boxY = constrain(hoverMouseY - boxH - 10, graphY + 6, graphY + graphH - boxH - 6);
 
     noStroke();
     fill(0, 20);
     rect(boxX + 3, boxY + 3, boxW, boxH, 8);
-
     fill(255);
     rect(boxX, boxY, boxW, boxH, 8);
-
     stroke(220);
     strokeWeight(1);
     noFill();
@@ -204,7 +128,6 @@ class Histogram {
     for (int i = 0; i <= stepCount; i++) {
       float y = map(i, 0, stepCount, graphY + graphH, graphY);
       line(graphX, y, graphX + graphW, y);
-
       fill(85);
       noStroke();
       textAlign(RIGHT, CENTER);
@@ -232,12 +155,9 @@ class Histogram {
       float barX = graphX + i * slotWidth + (slotWidth - barWidth) / 2.0;
       float barY = graphY + graphH - barHeight;
 
-      boolean isHovered = hoverMouseX >= barX && hoverMouseX <= barX + barWidth &&
-        hoverMouseY >= barY && hoverMouseY <= graphY + graphH;
-
-      if (isHovered) {
-        hoveredHour = i;
-      }
+      boolean isHovered = hoverMouseX >= barX && hoverMouseX <= barX + barWidth
+          && hoverMouseY >= barY && hoverMouseY <= graphY + graphH;
+      if (isHovered) hoveredHour = i;
 
       noStroke();
       fill(isHovered ? color(74, 122, 214) : color(100, 140, 220));

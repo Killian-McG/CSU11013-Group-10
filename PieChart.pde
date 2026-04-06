@@ -18,9 +18,9 @@ class PieChart {
     this.y = y;
     this.diameter = diameter;
 
-    onTimeColor = color(100, 140, 220);
-    lateColor = color(244, 170, 70);
-    cancelledColor = color(214, 92, 92);
+    onTimeColor = color(32, 142, 92);
+    lateColor = color(220, 148, 39);
+    cancelledColor = color(194, 69, 69);
     textColor = color(30);
     mutedText = color(95);
     panelColor = color(255);
@@ -41,7 +41,7 @@ class PieChart {
   }
 
   String getSliceLabel(int index) {
-    if (index == 0) return "On Time";
+    if (index == 0) return "On-time";
     if (index == 1) return "Late";
     return "Cancelled";
   }
@@ -142,12 +142,13 @@ class PieChart {
       if (f.cancelled == 1) {
         cancelledCount++;
       } else {
-        int dep = parseTimeToMinutes(f.departureTime);
-        int sched = parseTimeToMinutes(f.scheduledDepartureTime);
-        if (dep >= 0 && sched >= 0) {
-          if (dep <= sched) onTime++;
-          else late++;
+        int delay = f.getDepartureDelayMinutes();
+        if (delay == Integer.MIN_VALUE) {
+          continue;
         }
+
+        if (delay > 0) late++;
+        else onTime++;
       }
     }
 
@@ -188,19 +189,11 @@ class PieChart {
     noStroke();
     rect(graphX, graphY, graphW, graphH, 8);
 
-    float legendW = min(230, graphW * 0.34);
-    float pieAreaW = graphW - legendW - 28;
-    float pieDiameter = max(140, min(diameter, min(graphH - 36, pieAreaW - 30)));
+    float pieDiameter = max(140, min(diameter, min(graphH - 36, graphW - 60)));
 
-    float pieX = graphX + pieAreaW * 0.5;
+    float pieX = graphX + graphW * 0.5;
     float pieY = graphY + graphH * 0.5 + 8;
     float radius = pieDiameter / 2.0;
-
-    float legendX = graphX + pieAreaW + 28;
-    float legendY = graphY + graphH * 0.5 - 72;
-    float legendRowW = graphX + graphW - legendX;
-    float legendRowH = 44;
-    float legendGap = 12;
 
     float dx = hoverMouseX - pieX;
     float dy = hoverMouseY - pieY;
@@ -254,10 +247,6 @@ class PieChart {
     fill(mutedText);
     textSize(11);
     text("total flights", pieX, pieY + 16);
-
-    drawLegendRow(legendX, legendY, legendRowW, "On Time", onTime, fractions[0], onTimeColor, hoveredSlice == 0);
-    drawLegendRow(legendX, legendY + legendRowH + legendGap, legendRowW, "Late", late, fractions[1], lateColor, hoveredSlice == 1);
-    drawLegendRow(legendX, legendY + (legendRowH + legendGap) * 2, legendRowW, "Cancelled", cancelledCount, fractions[2], cancelledColor, hoveredSlice == 2);
 
     if (hoveredSlice != -1) {
       drawTooltip(getSliceLabel(hoveredSlice), counts[hoveredSlice], fractions[hoveredSlice], graphX, graphY, graphW, graphH);

@@ -53,12 +53,6 @@ class ScatterPlot {
     return constrain(minutes / 1439.0, 0, 1);
   }
 
-  int getAdjustedDelay(int scheduled, int actual) {
-    int diff = actual - scheduled;
-    if (diff < -720) diff += 1440;
-    else if (diff > 720) diff -= 1440;
-    return diff;
-  }
 
   String formatTimeLabel(int minutes) {
     if (minutes < 0) return "N/A";
@@ -94,13 +88,13 @@ class ScatterPlot {
       Flight f = data.get(i);
       if (f.cancelled == 1) continue;
 
-      int scheduledMinutes = parseTimeToMinutes(f.scheduledDepartureTime);
-      int actualMinutes = parseTimeToMinutes(f.departureTime);
+      int scheduledMinutes = f.getScheduledDepartureMinutes();
+      int actualMinutes = f.getDepartureMinutes();
       if (scheduledMinutes < 0 || actualMinutes < 0) continue;
 
       float px = graphX + timeToFraction(scheduledMinutes) * graphW;
       float py = graphY + (1 - timeToFraction(actualMinutes)) * graphH;
-      int delayMinutes = getAdjustedDelay(scheduledMinutes, actualMinutes);
+      int delayMinutes = f.getDepartureDelayMinutes();
 
       points.add(new ScatterPoint(
         f,

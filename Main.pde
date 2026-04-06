@@ -1,7 +1,6 @@
 import processing.event.MouseEvent;
 
 ArrayList<Flight> allFlights;
-ArrayList<Flight> flights;
 ScreenManager screenManager;
 
 void setup() {
@@ -15,7 +14,6 @@ void setup() {
     allFlights.add(new Flight(row));
   }
 
-  flights = allFlights;
   screenManager = new ScreenManager(allFlights);
 }
 

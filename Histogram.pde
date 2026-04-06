@@ -22,7 +22,7 @@ class Histogram {
 
     for (int i = 0; i < data.size(); i++) {
       Flight f = data.get(i);
-      int minutes = parseTimeToMinutes(f.scheduledDepartureTime);
+      int minutes = f.getScheduledDepartureMinutes();
       if (minutes >= 0) {
         int hour = minutes / 60;
         if (hour >= 0 && hour < 24) hourCounts[hour]++;

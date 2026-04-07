@@ -2,8 +2,8 @@ class SearchScreen {
   ArrayList<Flight> allFlights;
   FlightFilter flightFilter;
   final int PADDING = 18;
-  final int HEADER_H = 70;
-  final int TAB_Y = 82;
+  final int HEADER_H = 96;
+  final int TAB_Y = 108;
   final int TAB_W = 150;
   final int TAB_H = 38;
   final int TAB_GAP = 10;
@@ -44,6 +44,8 @@ class SearchScreen {
   boolean searchFired = false;
   String pendingChartKey;
 
+  PImage headerLogo;
+
   color bgColor = color(243, 246, 251);
   color cardColor = color(255);
   color cardStroke = color(214, 221, 235);
@@ -60,6 +62,7 @@ class SearchScreen {
   SearchScreen(ArrayList<Flight> allFlights, FlightFilter flightFilter) {
     this.allFlights = allFlights;
     this.flightFilter = flightFilter;
+    headerLogo = loadImage("images/logo.gif");
     initializeFilterOptions();
     initializeInteractiveControls();
   }
@@ -165,10 +168,22 @@ class SearchScreen {
     line(0, HEADER_H - 1, width, HEADER_H - 1);
     noStroke();
 
-    fill(textColor);
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    text("Flight Data Explorer", width / 2.0, HEADER_H * 0.25);
+    if (headerLogo != null) {
+      float maxLogoW = width - 40;
+      float maxLogoH = HEADER_H - 16;
+      float scale = min(maxLogoW / headerLogo.width, maxLogoH / headerLogo.height);
+      float logoW = headerLogo.width * scale;
+      float logoH = headerLogo.height * scale;
+
+      imageMode(CENTER);
+      image(headerLogo, width / 2.0, HEADER_H / 2.0, logoW, logoH);
+      imageMode(CORNER);
+    } else {
+      fill(textColor);
+      textAlign(CENTER, CENTER);
+      textSize(32);
+      text("Flight Data Explorer", width / 2.0, HEADER_H / 2.0);
+    }
   }
 
   void drawTabs() {

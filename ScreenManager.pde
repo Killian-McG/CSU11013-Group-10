@@ -5,6 +5,7 @@ class ScreenManager {
   FlightFilter flightFilter;
   ArrayList<Flight> allFlights;
   ArrayList<Flight> activeFlights;
+  int activeDelayToleranceMinutes = 0;
   String currentChart = "histogram";
 
   boolean onSearch = true;
@@ -46,14 +47,18 @@ class ScreenManager {
   void goToData(String chartKey) {
     currentChart = chartKey;
     activeFlights = searchScreen.buildFilteredFlightsFromCurrentSelections();
+    activeDelayToleranceMinutes = searchScreen.getSelectedDelayTolerance();
     dataScreen.setActiveFlights(activeFlights);
+    dataScreen.setDelayToleranceMinutes(activeDelayToleranceMinutes);
     dataScreen.setChart(chartKey);
     onSearch = false;
   }
 
   void goToSearch() {
     activeFlights = allFlights;
+    activeDelayToleranceMinutes = 0;
     dataScreen.setActiveFlights(activeFlights);
+    dataScreen.setDelayToleranceMinutes(activeDelayToleranceMinutes);
     onSearch = true;
   }
 

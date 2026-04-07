@@ -71,13 +71,21 @@ class Flight {
   }
 
   boolean isDelayedDeparture() {
+    return isDelayedDeparture(0);
+  }
+
+  boolean isDelayedDeparture(int toleranceMinutes) {
     int delay = getDepartureDelayMinutes();
-    return delay != Integer.MIN_VALUE && delay > 0;
+    return delay != Integer.MIN_VALUE && delay > toleranceMinutes;
   }
 
   boolean isOnTimeOrEarlyDeparture() {
+    return isOnTimeOrEarlyDeparture(0);
+  }
+
+  boolean isOnTimeOrEarlyDeparture(int toleranceMinutes) {
     int delay = getDepartureDelayMinutes();
-    return delay != Integer.MIN_VALUE && delay <= 0;
+    return delay != Integer.MIN_VALUE && delay <= toleranceMinutes;
   }
 
   String toString() {

@@ -1,5 +1,5 @@
 class MetricsCalculator {
-  ScreenMetrics computeMetrics(ArrayList<Flight> data) {
+  ScreenMetrics computeMetrics(ArrayList<Flight> data, int delayToleranceMinutes) {
     ScreenMetrics metrics = new ScreenMetrics();
     metrics.quietHour = -1;
     metrics.peakHour = -1;
@@ -65,9 +65,9 @@ class MetricsCalculator {
         metrics.minDelay = delay;
       }
 
-      if (delay > 0) {
+      if (f.isDelayedDeparture(delayToleranceMinutes)) {
         metrics.delayedFlights++;
-      } else {
+      } else if (f.isOnTimeOrEarlyDeparture(delayToleranceMinutes)) {
         metrics.onTimeFlights++;
       }
     }

@@ -16,8 +16,7 @@ class FlightFilter {
       if (!matchesState(f.destinationStateAbr, criteria.selectedDestinationState, "Any destination state")) continue;
       if (!matchesDistanceBand(f, criteria.selectedDistanceBand)) continue;
       if (!matchesTimeBucket(f, criteria.selectedTimeBucket)) continue;
-      if (!matchesDelayTolerance(f, criteria.toleranceMinutes)) continue;
-      if (!matchesDepartureStatus(f, criteria.onlyDelayed, criteria.onlyOnTime)) continue;
+      if (!matchesDepartureStatus(f, criteria.onlyDelayed, criteria.onlyOnTime, criteria.toleranceMinutes)) continue;
 
       result.add(f);
     }
@@ -62,21 +61,11 @@ class FlightFilter {
     return true;
   }
 
-  boolean matchesDelayTolerance(Flight f, int toleranceMinutes) {
-    if (toleranceMinutes <= 0) return true;
-    if (f.cancelled == 1) return true;
-    int delay = f.getDepartureDelayMinutes();
-    if (delay == Integer.MIN_VALUE) return false;
-    return delay <= toleranceMinutes;
-  }
-
-  boolean matchesDepartureStatus(Flight f, boolean onlyDelayed, boolean onlyOnTime) {
+  boolean matchesDepartureStatus(Flight f, boolean onlyDelayed, boolean onlyOnTime, int toleranceMinutes) {
     if (!onlyDelayed && !onlyOnTime) return true;
     if (f.cancelled == 1) return false;
-    int delay = f.getDepartureDelayMinutes();
-    if (delay == Integer.MIN_VALUE) return false;
-    if (onlyDelayed) return delay > 0;
-    if (onlyOnTime) return delay <= 0;
+    if (onlyDelayed) return f.isDelayedDeparture(toleranceMinutes);
+    if (onlyOnTime) return f.isOnTimeOrEarlyDeparture(toleranceMinutes);
     return true;
   }
 

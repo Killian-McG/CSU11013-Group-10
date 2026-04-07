@@ -130,7 +130,7 @@ class PieChart {
     text(formatPercent(fraction), x + w - 12, y + rowH / 2);
   }
 
-  void display(ArrayList<Flight> flights) {
+  void display(ArrayList<Flight> flights, int delayToleranceMinutes) {
     background(245);
     rectMode(CORNER);
     hoveredSlice = -1;
@@ -142,13 +142,8 @@ class PieChart {
       if (f.cancelled == 1) {
         cancelledCount++;
       } else {
-        int delay = f.getDepartureDelayMinutes();
-        if (delay == Integer.MIN_VALUE) {
-          continue;
-        }
-
-        if (delay > 0) late++;
-        else onTime++;
+        if (f.isDelayedDeparture(delayToleranceMinutes)) late++;
+        else if (f.isOnTimeOrEarlyDeparture(delayToleranceMinutes)) onTime++;
       }
     }
 

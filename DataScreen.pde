@@ -29,6 +29,8 @@ class DataScreen {
   PieChart pieChart;
   MetricsCalculator metricsCalculator;
   ArrayList<Flight> activeFlights;
+  int delayToleranceMinutes = 0;
+  PImage headerLogo;
 
   float sidebarScroll = 0;
   float sidebarTargetScroll = 0;
@@ -45,6 +47,7 @@ class DataScreen {
     pieChart = new PieChart(width / 2, height / 2, 300);
     metricsCalculator = new MetricsCalculator();
     activeFlights = new ArrayList<Flight>();
+    headerLogo = loadImage("images/logo.gif");
   }
 
   void setChart(String chartName) {
@@ -61,6 +64,10 @@ class DataScreen {
     }
   }
 
+  void setDelayToleranceMinutes(int minutes) {
+    delayToleranceMinutes = max(0, minutes);
+  }
+
   void handleMouseWheel(float amount) {
     if (mouseX >= sidebarViewportX && mouseX <= sidebarViewportX + sidebarViewportW
         && mouseY >= sidebarViewportY && mouseY <= sidebarViewportY + sidebarViewportH) {
@@ -71,7 +78,7 @@ class DataScreen {
   void display() {
     background(bgColor);
 
-    ScreenMetrics metrics = metricsCalculator.computeMetrics(activeFlights);
+    ScreenMetrics metrics = metricsCalculator.computeMetrics(activeFlights, delayToleranceMinutes);
     ArrayList<SidebarGroup> groups = buildSidebarGroups(metrics);
 
     drawHeader(metrics);
@@ -89,11 +96,21 @@ class DataScreen {
   void drawHeader(ScreenMetrics metrics) {
     drawCard(0, 0, width, HEADER_H, 0);
 
+    if (headerLogo != null) {
+      float maxLogoW = 220;
+      float maxLogoH = HEADER_H - 18;
+      float scale = min(maxLogoW / headerLogo.width, maxLogoH / headerLogo.height);
+      float logoW = headerLogo.width * scale;
+      float logoH = headerLogo.height * scale;
+      imageMode(CORNER);
+      image(headerLogo, PADDING, (HEADER_H - logoH) / 2.0, logoW, logoH);
+    }
+
     fill(textColor);
     noStroke();
-    textAlign(LEFT, TOP);
+    textAlign(CENTER, CENTER);
     textSize(26);
-    text(getChartTitle(), PADDING, 14);
+    text(getChartTitle(), width / 2.0, HEADER_H / 2.0);
 
     drawHomeButton();
   }
@@ -119,26 +136,10 @@ class DataScreen {
   void drawChartCard(float x, float y, float w, float h, ArrayList<Flight> data, ScreenMetrics metrics) {
     drawCard(x, y, w, h, CARD_RADIUS);
 
-    fill(textColor);
-    noStroke();
-    textAlign(LEFT, TOP);
-    textSize(19);
-    text(getChartPanelTitle(), x + 22, y + 18);
-
-    float tagY = y + 52;
-    float tagX = x + 22;
-    float firstW = measureTagWidth(getPrimaryTag(metrics));
-    float secondW = measureTagWidth(getSecondaryTag(metrics));
-
-    drawChartTag(tagX, tagY, getPrimaryTag(metrics), accentSoft, accent);
-    if (tagX + firstW + 8 + secondW <= x + w - 22) {
-      drawChartTag(tagX + firstW + 8, tagY, getSecondaryTag(metrics), color(248, 250, 254), textColor);
-    }
-
     float frameX = x + 18;
-    float frameY = y + 86;
+    float frameY = y + 18;
     float frameW = w - 36;
-    float frameH = h - 104;
+    float frameH = h - 36;
 
     noStroke();
     fill(surfaceTint);
@@ -350,7 +351,7 @@ class DataScreen {
       scatterPlot.drawScatterPlot(data);
     } else if (currentChart.equals("piechart")) {
       pieChart.setHoverMouse(localMouseX, localMouseY);
-      pieChart.display(data);
+      pieChart.display(data, delayToleranceMinutes);
     } else {
       background(245);
       fill(mutedText);
@@ -374,11 +375,11 @@ class DataScreen {
 
 
   String getChartTitle() {
-    if (currentChart.equals("histogram")) return "Hourly Departure Profile";
-    if (currentChart.equals("barchart")) return "Origin Airport Ranking";
-    if (currentChart.equals("scatterplot")) return "Departure Punctuality Scatter";
-    if (currentChart.equals("piechart")) return "Flight Status Mix";
-    return "Flight Data";
+    if (currentChart.equals("histogram")) return "Histogram";
+    if (currentChart.equals("barchart")) return "Bar Chart";
+    if (currentChart.equals("scatterplot")) return "Scatter Plot";
+    if (currentChart.equals("piechart")) return "Pie Chart";
+    return "Graph";
   }
 
   String getChartPanelTitle() {
@@ -507,7 +508,7 @@ class DataScreen {
 
     if (currentChart.equals("piechart")) {
       groups.add(new SidebarGroup(
-        "Status split",
+        "Status breakdown",
         new MetricTile[] {
           new MetricTile("On-time", pluralize(metrics.onTimeFlights, "flight", "flights") + " • " + formatPercent(metrics.onTimeSliceRate), successCol),
           new MetricTile("Late", pluralize(metrics.delayedFlights, "flight", "flights") + " • " + formatPercent(metrics.lateSliceRate), warningCol),
@@ -516,7 +517,7 @@ class DataScreen {
       ));
 
       groups.add(new SidebarGroup(
-        "Outcome balance",
+        "Overall stats",
         new MetricTile[] {
           new MetricTile("Largest segment", getLargestPieLabel(metrics), accent),
           new MetricTile("Classified flights", pluralize(metrics.classifiedFlights, "flight", "flights"), textColor),

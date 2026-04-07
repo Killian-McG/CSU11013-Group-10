@@ -41,6 +41,53 @@ class Flight {
     departureMinutes = parseTimeToMinutes(departureTime);
   }
 
+  int getScheduledDepartureMinutes() {
+    return scheduledDepartureMinutes;
+  }
+
+  int getDepartureMinutes() {
+    return departureMinutes;
+  }
+
+  boolean hasScheduledDepartureTime() {
+    return scheduledDepartureMinutes >= 0;
+  }
+
+  boolean hasDepartureTime() {
+    return departureMinutes >= 0;
+  }
+
+  int getDepartureDelayMinutes() {
+    if (scheduledDepartureMinutes < 0 || departureMinutes < 0) return Integer.MIN_VALUE;
+
+    int diff = departureMinutes - scheduledDepartureMinutes;
+    if (diff < -720) diff += 1440;
+    else if (diff > 720) diff -= 1440;
+    return diff;
+  }
+
+  boolean hasValidDepartureDelay() {
+    return getDepartureDelayMinutes() != Integer.MIN_VALUE;
+  }
+
+  boolean isDelayedDeparture() {
+    return isDelayedDeparture(0);
+  }
+
+  boolean isDelayedDeparture(int toleranceMinutes) {
+    int delay = getDepartureDelayMinutes();
+    return delay != Integer.MIN_VALUE && delay > toleranceMinutes;
+  }
+
+  boolean isOnTimeOrEarlyDeparture() {
+    return isOnTimeOrEarlyDeparture(0);
+  }
+
+  boolean isOnTimeOrEarlyDeparture(int toleranceMinutes) {
+    int delay = getDepartureDelayMinutes();
+    return delay != Integer.MIN_VALUE && delay <= toleranceMinutes;
+  }
+
   String toString() {
     return departureTime;
   }
@@ -83,12 +130,6 @@ int parseTimeToMinutes(String s) {
 }
 
 int getDepartureDelayMinutes(Flight f) {
-  int scheduled = parseTimeToMinutes(f.scheduledDepartureTime);
-  int actual = parseTimeToMinutes(f.departureTime);
-  if (scheduled < 0 || actual < 0) return Integer.MIN_VALUE;
-
-  int diff = actual - scheduled;
-  if (diff < -720) diff += 1440;
-  else if (diff > 720) diff -= 1440;
-  return diff;
+  if (f == null) return Integer.MIN_VALUE;
+  return f.getDepartureDelayMinutes();
 }

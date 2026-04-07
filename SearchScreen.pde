@@ -1,7 +1,9 @@
 class SearchScreen {
+  ArrayList<Flight> allFlights;
+  FlightFilter flightFilter;
   final int PADDING = 18;
-  final int HEADER_H = 70;
-  final int TAB_Y = 82;
+  final int HEADER_H = 96;
+  final int TAB_Y = 108;
   final int TAB_W = 150;
   final int TAB_H = 38;
   final int TAB_GAP = 10;
@@ -42,6 +44,8 @@ class SearchScreen {
   boolean searchFired = false;
   String pendingChartKey;
 
+  PImage headerLogo;
+
   color bgColor = color(243, 246, 251);
   color cardColor = color(255);
   color cardStroke = color(214, 221, 235);
@@ -55,7 +59,10 @@ class SearchScreen {
   color tabIdle = color(229, 234, 244);
   color tabHover = color(215, 222, 237);
 
-  SearchScreen() {
+  SearchScreen(ArrayList<Flight> allFlights, FlightFilter flightFilter) {
+    this.allFlights = allFlights;
+    this.flightFilter = flightFilter;
+    headerLogo = loadImage("images/logo.gif");
     initializeFilterOptions();
     initializeInteractiveControls();
   }
@@ -161,10 +168,22 @@ class SearchScreen {
     line(0, HEADER_H - 1, width, HEADER_H - 1);
     noStroke();
 
-    fill(textColor);
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    text("Flight Data Explorer", width / 2.0, HEADER_H * 0.25);
+    if (headerLogo != null) {
+      float maxLogoW = width - 40;
+      float maxLogoH = HEADER_H - 16;
+      float scale = min(maxLogoW / headerLogo.width, maxLogoH / headerLogo.height);
+      float logoW = headerLogo.width * scale;
+      float logoH = headerLogo.height * scale;
+
+      imageMode(CENTER);
+      image(headerLogo, width / 2.0, HEADER_H / 2.0, logoW, logoH);
+      imageMode(CORNER);
+    } else {
+      fill(textColor);
+      textAlign(CENTER, CENTER);
+      textSize(32);
+      text("Flight Data Explorer", width / 2.0, HEADER_H / 2.0);
+    }
   }
 
   void drawTabs() {
@@ -536,100 +555,26 @@ class SearchScreen {
     searchFired = false;
   }
 
+  FilterCriteria buildCriteriaFromCurrentSelections() {
+    FilterCriteria criteria = new FilterCriteria();
+    criteria.startMinutes = sliders[activeTab].getStartTotalMinutes();
+    criteria.endMinutes = sliders[activeTab].getEndTotalMinutes();
+    criteria.includeCancelled = cancelledBoxes[activeTab].isChecked();
+    criteria.includeDiverted = divertedBoxes[activeTab].isChecked();
+    criteria.onlyDelayed = delayedOnlyBoxes[activeTab].isChecked();
+    criteria.onlyOnTime = onTimeOnlyBoxes[activeTab].isChecked();
+    criteria.toleranceMinutes = getSelectedDelayTolerance();
+
+    criteria.selectedCarrier = getSelectedCarrier();
+    criteria.selectedOriginState = getSelectedOriginState();
+    criteria.selectedDestinationState = getSelectedDestinationState();
+    criteria.selectedDistanceBand = getSelectedDistanceBand();
+    criteria.selectedTimeBucket = getSelectedTimeBucket();
+    return criteria;
+  }
+
   ArrayList<Flight> buildFilteredFlightsFromCurrentSelections() {
-    ArrayList<Flight> result = new ArrayList<Flight>();
-
-    int startMinutes = sliders[activeTab].getStartTotalMinutes();
-    int endMinutes = sliders[activeTab].getEndTotalMinutes();
-    boolean includeCancelled = cancelledBoxes[activeTab].isChecked();
-    boolean includeDiverted = divertedBoxes[activeTab].isChecked();
-    boolean onlyDelayed = delayedOnlyBoxes[activeTab].isChecked();
-    boolean onlyOnTime = onTimeOnlyBoxes[activeTab].isChecked();
-    int toleranceMinutes = getSelectedDelayTolerance();
-
-    String selectedCarrier = getSelectedCarrier();
-    String selectedOriginState = getSelectedOriginState();
-    String selectedDestinationState = getSelectedDestinationState();
-    String selectedDistanceBand = getSelectedDistanceBand();
-    String selectedTimeBucket = getSelectedTimeBucket();
-
-    for (int i = 0; i < allFlights.size(); i++) {
-      Flight f = allFlights.get(i);
-
-      if (!matchesScheduledTimeRange(f, startMinutes, endMinutes)) continue;
-      if (!includeCancelled && f.cancelled == 1) continue;
-      if (!includeDiverted && f.diverted == 1) continue;
-      if (!matchesCarrier(f, selectedCarrier)) continue;
-      if (!matchesState(f.originStateAbr, selectedOriginState, "Any origin state")) continue;
-      if (!matchesState(f.destinationStateAbr, selectedDestinationState, "Any destination state")) continue;
-      if (!matchesDistanceBand(f, selectedDistanceBand)) continue;
-      if (!matchesTimeBucket(f, selectedTimeBucket)) continue;
-      if (!matchesDelayTolerance(f, toleranceMinutes)) continue;
-      if (!matchesDepartureStatus(f, onlyDelayed, onlyOnTime)) continue;
-
-      result.add(f);
-    }
-    return result;
-  }
-
-  boolean matchesScheduledTimeRange(Flight f, int startMinutes, int endMinutes) {
-    int sched = parseTimeToMinutes(f.scheduledDepartureTime);
-    if (sched < 0) return false;
-    return sched >= startMinutes && sched <= endMinutes;
-  }
-
-  boolean matchesCarrier(Flight f, String selectedCarrier) {
-    if (selectedCarrier.equals("Any carrier")) return true;
-    return valueMatches(f.carrier, selectedCarrier);
-  }
-
-  boolean matchesState(String stateValue, String selectedState, String anyLabel) {
-    if (selectedState.equals(anyLabel)) return true;
-    return valueMatches(stateValue, selectedState);
-  }
-
-  boolean matchesDistanceBand(Flight f, String band) {
-    if (band.equals("Any distance")) return true;
-    if (band.equals("Under 500 mi")) return f.distance < 500;
-    if (band.equals("500 - 1000 mi")) return f.distance >= 500 && f.distance <= 1000;
-    if (band.equals("1001 - 1500 mi")) return f.distance >= 1001 && f.distance <= 1500;
-    if (band.equals("1501+ mi")) return f.distance >= 1501;
-    return true;
-  }
-
-  boolean matchesTimeBucket(Flight f, String bucket) {
-    if (bucket.equals("Any departure")) return true;
-    int mins = parseTimeToMinutes(f.scheduledDepartureTime);
-    if (mins < 0) return false;
-    if (bucket.equals("Red-eye (00-05)")) return mins < 360;
-    if (bucket.equals("Morning (06-11)")) return mins >= 360 && mins < 720;
-    if (bucket.equals("Afternoon (12-16)")) return mins >= 720 && mins < 1020;
-    if (bucket.equals("Evening (17-20)")) return mins >= 1020 && mins < 1260;
-    if (bucket.equals("Night (21-23)")) return mins >= 1260;
-    return true;
-  }
-
-  boolean matchesDelayTolerance(Flight f, int toleranceMinutes) {
-    if (toleranceMinutes <= 0) return true;
-    if (f.cancelled == 1) return true;
-    int delay = getDepartureDelayMinutes(f);
-    if (delay == Integer.MIN_VALUE) return false;
-    return delay <= toleranceMinutes;
-  }
-
-  boolean matchesDepartureStatus(Flight f, boolean onlyDelayed, boolean onlyOnTime) {
-    if (!onlyDelayed && !onlyOnTime) return true;
-    if (f.cancelled == 1) return false;
-    int delay = getDepartureDelayMinutes(f);
-    if (delay == Integer.MIN_VALUE) return false;
-    if (onlyDelayed) return delay > 0;
-    if (onlyOnTime) return delay <= 0;
-    return true;
-  }
-
-  boolean valueMatches(String a, String b) {
-    if (a == null || b == null) return false;
-    return trim(a).equals(trim(b));
+    return flightFilter.filter(allFlights, buildCriteriaFromCurrentSelections());
   }
 
   int countCancelled(ArrayList<Flight> data) {
@@ -653,7 +598,7 @@ class SearchScreen {
     for (int i = 0; i < data.size(); i++) {
       Flight f = data.get(i);
       if (f.cancelled == 1) continue;
-      int delay = getDepartureDelayMinutes(f);
+      int delay = f.getDepartureDelayMinutes();
       if (delay > 0) count++;
     }
     return count;
@@ -664,7 +609,7 @@ class SearchScreen {
     for (int i = 0; i < data.size(); i++) {
       Flight f = data.get(i);
       if (f.cancelled == 1) continue;
-      int delay = getDepartureDelayMinutes(f);
+      int delay = f.getDepartureDelayMinutes();
       if (delay != Integer.MIN_VALUE && delay <= 0) count++;
     }
     return count;

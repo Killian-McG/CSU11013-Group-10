@@ -4,16 +4,20 @@ class ScreenManager {
   DataScreen   dataScreen;
   FlightFilter flightFilter;
   ArrayList<Flight> allFlights;
+  ArrayList<Flight> activeFlights;
+  int activeDelayToleranceMinutes = 0;
   String currentChart = "histogram";
 
   boolean onSearch = true;
 
   ScreenManager(ArrayList<Flight> allFlights) {
     this.allFlights = allFlights;
+    activeFlights = allFlights;
 
-    searchScreen = new SearchScreen();
-    dataScreen   = new DataScreen();
     flightFilter = new FlightFilter();
+    searchScreen = new SearchScreen(allFlights, flightFilter);
+    dataScreen   = new DataScreen();
+    dataScreen.setActiveFlights(activeFlights);
   }
 
   void handleMouseWheel(float amount) {
@@ -41,14 +45,20 @@ class ScreenManager {
   }
 
   void goToData(String chartKey) {
-    currentChart  = chartKey;
-    flights       = searchScreen.buildFilteredFlightsFromCurrentSelections();
+    currentChart = chartKey;
+    activeFlights = searchScreen.buildFilteredFlightsFromCurrentSelections();
+    activeDelayToleranceMinutes = searchScreen.getSelectedDelayTolerance();
+    dataScreen.setActiveFlights(activeFlights);
+    dataScreen.setDelayToleranceMinutes(activeDelayToleranceMinutes);
     dataScreen.setChart(chartKey);
-    onSearch      = false;
+    onSearch = false;
   }
 
   void goToSearch() {
-    flights  = allFlights;
+    activeFlights = allFlights;
+    activeDelayToleranceMinutes = 0;
+    dataScreen.setActiveFlights(activeFlights);
+    dataScreen.setDelayToleranceMinutes(activeDelayToleranceMinutes);
     onSearch = true;
   }
 

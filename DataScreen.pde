@@ -74,7 +74,9 @@ class DataScreen {
       sidebarTargetScroll += amount * 42;
     }
   }
-
+  
+  
+  // Recompute metrics each frame so the dashboard stays in sync with the current filtered flights and selected chart
   void display() {
     background(bgColor);
 
@@ -164,6 +166,7 @@ class DataScreen {
     text(label, x + w / 2, y + 11);
   }
 
+  // The right-hand panel can overflow vertically, so it is clipped with a scrollbar
   void drawSidebar(float x, float y, float w, float h, ScreenMetrics metrics, ArrayList<SidebarGroup> groups) {
     drawCard(x, y, w, h, CARD_RADIUS);
 

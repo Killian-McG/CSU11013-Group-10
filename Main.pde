@@ -3,12 +3,13 @@ import processing.event.MouseEvent;
 ArrayList<Flight> allFlights;
 ScreenManager screenManager;
 
+// Load the dataset once at startup and prepare the first screen
 void setup() {
   size(1200, 650);
   textSize(16);
 
   allFlights = new ArrayList<Flight>();
-  Table table = loadTable("data/flights10k.csv", "header");
+  Table table = loadTable("data/flights.csv", "header");
 
   for (TableRow row : table.rows()) {
     allFlights.add(new Flight(row));

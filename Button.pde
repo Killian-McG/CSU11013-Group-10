@@ -12,6 +12,7 @@ class Button {
     this.label = label;
   }
 
+  // displays button and calculates hover state
   void display() {
 
     hovered = isMouseOver();

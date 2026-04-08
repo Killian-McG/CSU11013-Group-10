@@ -12,6 +12,7 @@ class CheckBox {
     this.checked = false;
   }
 
+  // Draws the box first then overlays the check mark when selected
   void display() {
     stroke(180);
     strokeWeight(1.5);

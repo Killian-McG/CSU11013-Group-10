@@ -72,7 +72,7 @@ class SearchScreen {
     originStateOptions = buildOptionsFromFlights("originState", "Any origin state");
     destinationStateOptions = buildOptionsFromFlights("destinationState", "Any destination state");
     distanceOptions = new String[] { "Any distance", "Under 500 mi", "500 - 1000 mi", "1001 - 1500 mi", "1501+ mi" };
-    timeBucketOptions = new String[] { "Any departure", "Red-eye (00-05)", "Morning (06-11)", "Afternoon (12-16)", "Evening (17-20)", "Night (21-23)" };
+    timeBucketOptions = new String[] { "Any departure", "Early Morning (00-05)", "Morning (06-11)", "Afternoon (12-16)", "Evening (17-20)", "Night (21-23)" };
     delayToleranceOptions = new String[] { "0 mins", "10 mins", "20 mins", "30 mins", "45 mins", "60 mins", "90 mins", "120 mins" };
   }
 
@@ -111,7 +111,7 @@ class SearchScreen {
       destinationStateDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Destination state", destinationStateOptions);
       distanceDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Distance", distanceOptions);
       timeBucketDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Departure bucket", timeBucketOptions);
-      delayToleranceDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Max delay", delayToleranceOptions);
+      delayToleranceDropdowns[i] = new Dropdown(0, 0, 210, FIELD_H, "Delay tolerance", delayToleranceOptions);
     }
   }
 
@@ -269,7 +269,7 @@ class SearchScreen {
     float statsY = y + 152;
     float statsW = (w - 54) / 2.0;
     drawStatTile("On-time", str(onTimeCount), x + 20, statsY, statsW, successCol);
-    drawStatTile("Delayed", str(delayedCount), x + 34 + statsW, statsY, statsW, accent);
+    drawStatTile("Delayed", str(delayedCount), x + 34 + statsW, statsY, statsW, warningCol);
 
     statsY += 56;
     drawStatTile("Cancelled", str(cancelledCount), x + 20, statsY, statsW, dangerCol);
@@ -318,7 +318,7 @@ class SearchScreen {
     );
 
     drawInfoBlock(
-      "Delay / flags",
+      "Delay",
       buildDelayAndFlagSummary(),
       infoX + (colW + gapX) * 2,
       infoTop + rowH + gapY,
@@ -464,7 +464,7 @@ class SearchScreen {
   }
 
   String buildDelayAndFlagSummary() {
-    String delayText = getSelectedDelayTolerance() + " mins max delay";
+    String delayText = getSelectedDelayTolerance() + " mins tolerance";
     String flags = buildFlagSummary();
     if (flags.equals("default")) return delayText;
     return delayText + ", " + flags;
@@ -595,29 +595,29 @@ class SearchScreen {
 
   int countDelayed(ArrayList<Flight> data) {
     int count = 0;
+    int toleranceMinutes = getSelectedDelayTolerance();
     for (int i = 0; i < data.size(); i++) {
       Flight f = data.get(i);
       if (f.cancelled == 1) continue;
-      int delay = f.getDepartureDelayMinutes();
-      if (delay > 0) count++;
+      if (f.isDelayedDeparture(toleranceMinutes)) count++;
     }
     return count;
   }
 
   int countOnTime(ArrayList<Flight> data) {
     int count = 0;
+    int toleranceMinutes = getSelectedDelayTolerance();
     for (int i = 0; i < data.size(); i++) {
       Flight f = data.get(i);
       if (f.cancelled == 1) continue;
-      int delay = f.getDepartureDelayMinutes();
-      if (delay != Integer.MIN_VALUE && delay <= 0) count++;
+      if (f.isOnTimeOrEarlyDeparture(toleranceMinutes)) count++;
     }
     return count;
   }
 
   int getSelectedDelayTolerance() {
     String selected = delayToleranceDropdown().getSelected();
-    if (selected == null || selected.length() == 0 || selected.equals("Max delay")) return 0;
+    if (selected == null || selected.length() == 0 || selected.equals("Delay tolerance")) return 0;
     return int(split(selected, ' ')[0]);
   }
 

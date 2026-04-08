@@ -53,7 +53,6 @@ class ScatterPlot {
     return constrain(minutes / 1439.0, 0, 1);
   }
 
-
   String formatTimeLabel(int minutes) {
     if (minutes < 0) return "N/A";
     return nf(minutes / 60, 2) + ":" + nf(minutes % 60, 2);

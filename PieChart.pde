@@ -142,8 +142,13 @@ class PieChart {
       if (f.cancelled == 1) {
         cancelledCount++;
       } else {
-        if (f.isDelayedDeparture(delayToleranceMinutes)) late++;
-        else if (f.isOnTimeOrEarlyDeparture(delayToleranceMinutes)) onTime++;
+        int delay = getDepartureDelayMinutes(f);
+        if (delay == Integer.MIN_VALUE) {
+          continue;
+        }
+
+        if (delay > delayToleranceMinutes) late++;
+        else onTime++;
       }
     }
 

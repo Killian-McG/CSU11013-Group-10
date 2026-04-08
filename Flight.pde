@@ -49,11 +49,11 @@ class Flight {
     return departureMinutes;
   }
 
-  boolean hasScheduledDepartureTime() {
+  boolean hasValidScheduledDeparture() {
     return scheduledDepartureMinutes >= 0;
   }
 
-  boolean hasDepartureTime() {
+  boolean hasValidDepartureTime() {
     return departureMinutes >= 0;
   }
 
@@ -66,26 +66,16 @@ class Flight {
     return diff;
   }
 
-  boolean hasValidDepartureDelay() {
-    return getDepartureDelayMinutes() != Integer.MIN_VALUE;
-  }
-
-  boolean isDelayedDeparture() {
-    return isDelayedDeparture(0);
-  }
-
   boolean isDelayedDeparture(int toleranceMinutes) {
     int delay = getDepartureDelayMinutes();
-    return delay != Integer.MIN_VALUE && delay > toleranceMinutes;
-  }
-
-  boolean isOnTimeOrEarlyDeparture() {
-    return isOnTimeOrEarlyDeparture(0);
+    if (delay == Integer.MIN_VALUE) return false;
+    return delay > max(0, toleranceMinutes);
   }
 
   boolean isOnTimeOrEarlyDeparture(int toleranceMinutes) {
     int delay = getDepartureDelayMinutes();
-    return delay != Integer.MIN_VALUE && delay <= toleranceMinutes;
+    if (delay == Integer.MIN_VALUE) return false;
+    return delay <= max(0, toleranceMinutes);
   }
 
   String toString() {

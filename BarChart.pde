@@ -1,3 +1,5 @@
+// Builds a bar chart of the busiest oirigin airports
+
 class BarChart {
 
   int NUM_AIRPORTS = 20;
@@ -49,6 +51,7 @@ class BarChart {
     return cleaned.length() == 0 ? null : cleaned;
   }
 
+  // Counts flights by origin airport then sorts them so the busiest oirigins appear first
   void computeCounts(ArrayList<Flight> data) {
     java.util.HashMap<String, Integer> map = new java.util.HashMap<String, Integer>();
 

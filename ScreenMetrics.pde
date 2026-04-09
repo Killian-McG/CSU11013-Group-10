@@ -1,3 +1,8 @@
+// MAIN AUTHOR: Killian - Week 4
+
+// SCREEN METRICS
+//   Defines variables for use on releveant metrics sidebar 
+
 class ScreenMetrics {
   int totalFlights = 0, onTimeFlights = 0, delayedFlights = 0;
   int cancelledFlights = 0, cancelledExcluded = 0, divertedFlights = 0;

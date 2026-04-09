@@ -1,4 +1,11 @@
+// MAIN AUTHOR: Killian - Week 4
+
+// MetricsCalculator
+//    Computes the summary numbers in the sidebar beside each chart
 class MetricsCalculator {
+  
+  // Accepts the filtered flight list and the user-chosen delay tolerance
+  // Returns a fully populated ScreenMetrics object.
   ScreenMetrics computeMetrics(ArrayList<Flight> data, int delayToleranceMinutes) {
     ScreenMetrics metrics = new ScreenMetrics();
     metrics.quietHour = -1;
@@ -10,7 +17,10 @@ class MetricsCalculator {
     java.util.HashMap<String, Integer> originCounts = new java.util.HashMap<String, Integer>();
     java.util.HashMap<String, Integer> destinationCounts = new java.util.HashMap<String, Integer>();
 
+    // Hourly bucket array
     int[] hourCounts = new int[24];
+    
+    // Accumulators for computing averages later
     int totalDelay = 0;
     int delaySamples = 0;
     int totalDistance = 0;
@@ -21,6 +31,7 @@ class MetricsCalculator {
       Flight f = data.get(i);
       metrics.totalFlights++;
 
+      // Count the broad totals first so every chart is working from the same base numbers
       addCount(carrierCounts, cleanValue(f.carrier));
       addCount(originCounts, cleanValue(f.origin));
       addCount(destinationCounts, cleanValue(f.destination));
@@ -32,6 +43,7 @@ class MetricsCalculator {
 
       int sched = f.getScheduledDepartureMinutes();
       if (sched >= 0) {
+        // Hour metrics come from scheduled departure, not actual departure
         metrics.validScheduledFlights++;
         int hour = sched / 60;
         hourCounts[hour]++;
@@ -72,6 +84,7 @@ class MetricsCalculator {
       }
     }
 
+    // Creates summary fields from the accumulators
     metrics.classifiedFlights = metrics.onTimeFlights + metrics.delayedFlights + metrics.cancelledFlights;
     metrics.uniqueOrigins = originCounts.size();
     metrics.uniqueDestinations = destinationCounts.size();
@@ -100,6 +113,7 @@ class MetricsCalculator {
     metrics.peakHourCount = 0;
     metrics.quietHourCount = Integer.MAX_VALUE;
 
+    // Scan the hourly buckets once to find the busiest and quietest active hours
     for (int h = 0; h < 24; h++) {
       if (hourCounts[h] > 0) {
         metrics.activeHours++;
@@ -120,17 +134,20 @@ class MetricsCalculator {
     return metrics;
   }
 
+  // Increments the count for <key> in the map by 1
   void addCount(java.util.HashMap<String, Integer> map, String key) {
     if (key == null || key.length() == 0) return;
     Integer current = map.get(key);
     map.put(key, current == null ? 1 : current + 1);
   }
 
+  // Returns the count stored for <key>
   int getCount(java.util.HashMap<String, Integer> map, String key) {
     if (key == null || !map.containsKey(key)) return 0;
     return map.get(key);
   }
 
+  // Finds and returns the key with the highest count in the map
   String getTopKey(java.util.HashMap<String, Integer> map) {
     String bestKey = null;
     int bestCount = -1;
@@ -144,6 +161,7 @@ class MetricsCalculator {
     return bestKey;
   }
 
+  // Returns the Nth largest value in the map
   int getNthLargestValue(java.util.HashMap<String, Integer> map, int rank) {
     if (map.size() == 0 || rank < 1) return 0;
     int[] values = new int[map.size()];
@@ -156,6 +174,7 @@ class MetricsCalculator {
     return pos < 0 ? 0 : values[pos];
   }
 
+  // Returns the combined flight count of the top N entries in the map
   int getTopNTotal(java.util.HashMap<String, Integer> map, int n) {
     int[] values = new int[map.size()];
     int index = 0;
@@ -171,6 +190,7 @@ class MetricsCalculator {
     return total;
   }
 
+  // Error checking/Data cleaning
   String cleanValue(String value) {
     if (value == null) return null;
     String trimmed = trim(value);

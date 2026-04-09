@@ -1,4 +1,10 @@
+// MAIN AUTHOR: Killian - Week 4
+
+// FILTER CRITERIA
+//    Data holder for user search criteria
 class FilterCriteria {
+  // Search variables with placeholder values:
+  
   int startMinutes = 0;
   int endMinutes = 1439;
 

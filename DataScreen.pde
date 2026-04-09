@@ -1,10 +1,22 @@
+// MAIN AUTHOR: Cameron - Week 3
+
+// Editor: Killian - Week 4
+//          Improved code layout and fixed cosmetic issues
+
+// DATA SCREEN
+//  SHows results of search screen after user confirms filters
+//  Draws selected chart on the left and scrollable metric summary on the right
+
 class DataScreen {
+  
+  // Layout constants
   final float PADDING = 18;
   final float HEADER_H = 78;
   final float CARD_RADIUS = 18;
   final float CARD_GAP = 18;
   final float SIDEBAR_W = 360;
 
+  // Colour palette
   color bgColor = color(243, 246, 251);
   color cardColor = color(255);
   color cardStroke = color(214, 221, 235);
@@ -20,13 +32,17 @@ class DataScreen {
   color scrollbarTrack = color(232, 236, 244);
   color scrollbarThumb = color(176, 186, 205);
 
+  // Defults for when search page first loads
   String currentChart = "histogram";
   boolean homeFired = false;
 
+  // All four chart types are instantiated
   Histogram histogram;
   BarChart barChart;
   ScatterPlot scatterPlot;
   PieChart pieChart;
+  
+  // Computes sidebar stats
   MetricsCalculator metricsCalculator;
   ArrayList<Flight> activeFlights;
   int delayToleranceMinutes = 0;
@@ -40,6 +56,7 @@ class DataScreen {
   float sidebarViewportH = 0;
   float sidebarContentH = 0;
 
+  // Constructor: creates all chart instances and initialises state
   DataScreen() {
     histogram = new Histogram();
     barChart = new BarChart();
@@ -50,12 +67,16 @@ class DataScreen {
     headerLogo = loadImage("images/logo.gif");
   }
 
+  // Sets users choice of chart
   void setChart(String chartName) {
     currentChart = chartName;
+    
+    // Resets sidebar scroll position when changing chart
     sidebarScroll = 0;
     sidebarTargetScroll = 0;
   }
 
+  // Replaces the flight data with new filtered flights
   void setActiveFlights(ArrayList<Flight> flights) {
     if (flights == null) {
       activeFlights = new ArrayList<Flight>();
@@ -64,10 +85,12 @@ class DataScreen {
     }
   }
 
+  // Stores the delay tolerance so charts that need it
   void setDelayToleranceMinutes(int minutes) {
     delayToleranceMinutes = max(0, minutes);
   }
 
+  // Called by the main sketchs mouseWheel event
   void handleMouseWheel(float amount) {
     if (mouseX >= sidebarViewportX && mouseX <= sidebarViewportX + sidebarViewportW
         && mouseY >= sidebarViewportY && mouseY <= sidebarViewportY + sidebarViewportH) {
@@ -75,16 +98,16 @@ class DataScreen {
     }
   }
   
-  
-  // Recompute metrics each frame so the dashboard stays in sync with the current filtered flights and selected chart
-  void display() {
+ void display() {
     background(bgColor);
 
+    // Compute metrics for sidebar
     ScreenMetrics metrics = metricsCalculator.computeMetrics(activeFlights, delayToleranceMinutes);
     ArrayList<SidebarGroup> groups = buildSidebarGroups(metrics);
 
     drawHeader(metrics);
 
+    // Calculate the body area below the header
     float bodyY = HEADER_H + PADDING;
     float bodyH = height - bodyY - PADDING;
     float chartX = PADDING;
@@ -95,6 +118,7 @@ class DataScreen {
     drawSidebar(sidebarX, bodyY, SIDEBAR_W, bodyH, metrics, groups);
   }
 
+  // Draws header with chart title and project logo
   void drawHeader(ScreenMetrics metrics) {
     drawCard(0, 0, width, HEADER_H, 0);
 
@@ -117,6 +141,7 @@ class DataScreen {
     drawHomeButton();
   }
 
+  // Draws the Home button in the top-right corner
   void drawHomeButton() {
     float bw = 118;
     float bh = 36;
@@ -135,9 +160,11 @@ class DataScreen {
     text("< Home", bx + bw / 2, by + bh / 2);
   }
 
+  // Chart sits within a padded acrd so every graph is framed the smae way
   void drawChartCard(float x, float y, float w, float h, ArrayList<Flight> data, ScreenMetrics metrics) {
     drawCard(x, y, w, h, CARD_RADIUS);
 
+    // Inner frame
     float frameX = x + 18;
     float frameY = y + 18;
     float frameW = w - 36;
@@ -150,11 +177,13 @@ class DataScreen {
     drawGraph(frameX, frameY, frameW, frameH, data);
   }
 
+  // Measures how wide a rounded tag label should be
   float measureTagWidth(String label) {
     textSize(10);
     return textWidth(label) + 22;
   }
 
+  // Draws a small pill-shaped colour tag
   void drawChartTag(float x, float y, String label, color bg, color fg) {
     float w = measureTagWidth(label);
     noStroke();
@@ -166,16 +195,18 @@ class DataScreen {
     text(label, x + w / 2, y + 11);
   }
 
-  // The right-hand panel can overflow vertically, so it is clipped with a scrollbar
+  // The sidebar can overflow vertically, so it is clipped with a scrollbar
   void drawSidebar(float x, float y, float w, float h, ScreenMetrics metrics, ArrayList<SidebarGroup> groups) {
     drawCard(x, y, w, h, CARD_RADIUS);
 
+    // "Relevant metrics" heading at the top of the sidebar
     fill(textColor);
     noStroke();
     textAlign(LEFT, TOP);
     textSize(18);
     text("Relevant metrics", x + 18, y + 18);
 
+    // Store viewport bounds so handleMouseWheel can check whether the cursor is inside the scrollable area
     sidebarViewportX = x + 14;
     sidebarViewportY = y + 54;
     sidebarViewportW = w - 28;
@@ -185,6 +216,7 @@ class DataScreen {
     sidebarContentH = measureSidebarContentHeight(contentW, groups);
     float maxScroll = max(0, sidebarContentH - sidebarViewportH);
 
+    // Clamp and smoothly animate the scroll position
     sidebarTargetScroll = constrain(sidebarTargetScroll, 0, maxScroll);
     sidebarScroll = lerp(sidebarScroll, sidebarTargetScroll, maxScroll > 0 ? 0.22 : 0.32);
     if (abs(sidebarScroll - sidebarTargetScroll) < 0.4) {
@@ -193,8 +225,11 @@ class DataScreen {
 
     float clipW = sidebarViewportW - (maxScroll > 0 ? 12 : 0);
 
+    // Clip so cards below the fold dont draw over the rest of the screen
     clip(int(sidebarViewportX), int(sidebarViewportY), int(clipW), int(sidebarViewportH));
     pushMatrix();
+    
+    // Shift the content upward by the scroll offset.
     translate(0, -sidebarScroll);
     drawSidebarContent(sidebarViewportX, sidebarViewportY, clipW, metrics, groups);
     popMatrix();
@@ -205,12 +240,14 @@ class DataScreen {
     }
   }
 
+  // Returns true if the sidebar content is taller than the visible area
   boolean needsScroll(float w, float h, ArrayList<SidebarGroup> groups) {
     float viewportH = h - 68;
     float contentH = measureSidebarContentHeight(w - 34, groups);
     return contentH > viewportH + 1;
   }
 
+  // Calculates the total pixel height of all sidebar content
   float measureSidebarContentHeight(float w, ArrayList<SidebarGroup> groups) {
     float h = 128 + 18;
     for (int i = 0; i < groups.size(); i++) {
@@ -221,6 +258,7 @@ class DataScreen {
     return h;
   }
 
+  // Draws the hero card followed by each metric group
   void drawSidebarContent(float x, float y, float w, ScreenMetrics metrics, ArrayList<SidebarGroup> groups) {
     float cy = y;
     cy = drawHeroCard(x, cy, w, metrics);
@@ -231,6 +269,7 @@ class DataScreen {
     }
   }
 
+  // Large coloured card at top of relevant metrics
   float drawHeroCard(float x, float y, float w, ScreenMetrics metrics) {
     float h = 128;
 
@@ -259,6 +298,7 @@ class DataScreen {
     return y + h;
   }
 
+  // Draws a labelled group of metric tiles with a section heading
   float drawSidebarGroup(float x, float y, float w, SidebarGroup group) {
     fill(textColor);
     noStroke();
@@ -274,6 +314,7 @@ class DataScreen {
     return cy;
   }
 
+  // Draws a single metric tile containing a small coloured bar with data
   void drawMetricTile(float x, float y, float w, MetricTile tile) {
     color tileBg = lerpColor(color(255), tile.valueColor, 0.06);
     color tileStroke = lerpColor(cardStroke, tile.valueColor, 0.14);
@@ -302,6 +343,7 @@ class DataScreen {
     text(tile.value, x + 28, y + 28, w - 42, 18);
   }
 
+  // Draws the vertical scrollbar track and thumb on the right edge of the sidebar
   void drawScrollbar(float x, float y, float w, float h, float maxScroll) {
     noStroke();
     fill(scrollbarTrack);
@@ -314,6 +356,7 @@ class DataScreen {
     rect(x, thumbY, w, thumbH, 4);
   }
 
+  // Draws a white rounded-rectangle card with a subtle drop shadow and a light border
   void drawCard(float x, float y, float w, float h, float radius) {
     noStroke();
     fill(20, 28, 45, 12);
@@ -325,10 +368,12 @@ class DataScreen {
     rect(x, y, w, h, radius);
   }
 
+  // Draws users chosen graph
   void drawGraph(float gx, float gy, float gw, float gh, ArrayList<Flight> data) {
     clip(int(gx + 2), int(gy + 2), int(gw - 4), int(gh - 4));
     pushMatrix();
 
+    // Scale chart into chart card
     float scaleX = gw / width;
     float scaleY = gh / height;
     float s = min(scaleX, scaleY);
@@ -337,12 +382,14 @@ class DataScreen {
     float offsetX = gx + (gw - scaledW) / 2.0;
     float offsetY = gy + (gh - scaledH) / 2.0;
 
+    // Converts mouse coordinates to chart coordinates to ensure hover logic still works
     float localMouseX = (mouseX - offsetX) / s;
     float localMouseY = (mouseY - offsetY) / s;
 
     translate(offsetX, offsetY);
     scale(s);
 
+    // Call the appropriate charts draw method
     if (currentChart.equals("histogram")) {
       histogram.setHoverMouse(localMouseX, localMouseY);
       histogram.display(data);
@@ -367,6 +414,7 @@ class DataScreen {
     noClip();
   }
 
+  // Detects home button click
   void handleMousePressed() {
     float bw = 118, bh = 36;
     float bx = width - bw - PADDING;
@@ -376,7 +424,7 @@ class DataScreen {
     }
   }
 
-
+  // Sets chart title in header
   String getChartTitle() {
     if (currentChart.equals("histogram")) return "Histogram";
     if (currentChart.equals("barchart")) return "Bar Chart";
@@ -384,7 +432,8 @@ class DataScreen {
     if (currentChart.equals("piechart")) return "Pie Chart";
     return "Graph";
   }
-
+  
+  // Sets cart secondary title
   String getChartPanelTitle() {
     if (currentChart.equals("histogram")) return "Flights Per Hour";
     if (currentChart.equals("barchart")) return "Flights by Origin Airport";
@@ -393,6 +442,7 @@ class DataScreen {
     return "Flight Data";
   }
 
+  // Returns metrics primary tag
   String getPrimaryTag(ScreenMetrics metrics) {
     if (metrics.totalFlights == 0) return "No matching data";
     if (currentChart.equals("histogram")) return "Peak hour: " + formatHourLabel(metrics.peakHour);
@@ -402,6 +452,7 @@ class DataScreen {
     return "Filtered results";
   }
 
+  // Returns metrics secondary tag
   String getSecondaryTag(ScreenMetrics metrics) {
     if (metrics.totalFlights == 0) return "Adjust your search filters";
     if (currentChart.equals("histogram")) return str(metrics.activeHours) + " active hours";
@@ -411,6 +462,7 @@ class DataScreen {
     return str(metrics.totalFlights) + " flights";
   }
 
+  // Returns the big headline value shown in the hero card
   String getHeroValue(ScreenMetrics metrics) {
     if (metrics.totalFlights == 0) return "No data in view";
     if (currentChart.equals("histogram")) return formatHourLabel(metrics.peakHour);
@@ -420,6 +472,7 @@ class DataScreen {
     return str(metrics.totalFlights) + " flights";
   }
 
+  // Returns the explanatory sub-line below the hero value
   String getHeroSubline(ScreenMetrics metrics) {
     if (metrics.totalFlights == 0) return "Try widening the filters from the search screen.";
     if (currentChart.equals("histogram")) {
@@ -437,9 +490,12 @@ class DataScreen {
     return pluralize(metrics.totalFlights, "flight", "flights");
   }
 
+  // Returns a list of SidebarGroup objects to display
   ArrayList<SidebarGroup> buildSidebarGroups(ScreenMetrics metrics) {
     ArrayList<SidebarGroup> groups = new ArrayList<SidebarGroup>();
 
+    // Each chart gets a different set of side metrics so the panel stays relevant instead of showing one generic summary
+    // Histogram sidebar
     if (currentChart.equals("histogram")) {
       groups.add(new SidebarGroup(
         "Departure distribution",
@@ -462,7 +518,8 @@ class DataScreen {
       ));
       return groups;
     }
-
+    
+    // Bar chart sidebar
     if (currentChart.equals("barchart")) {
       groups.add(new SidebarGroup(
         "Airport concentration",
@@ -486,6 +543,7 @@ class DataScreen {
       return groups;
     }
 
+    // Scatter plot sidebar
     if (currentChart.equals("scatterplot")) {
       groups.add(new SidebarGroup(
         "Departure punctuality",
@@ -508,7 +566,8 @@ class DataScreen {
       ));
       return groups;
     }
-
+    
+    // Pie chart sidebar
     if (currentChart.equals("piechart")) {
       groups.add(new SidebarGroup(
         "Status breakdown",
@@ -540,11 +599,13 @@ class DataScreen {
     return groups;
   }
 
+  // Converts a 0-23 hour integer to a display string
   String formatHourLabel(int hour) {
     if (hour < 0 || hour > 23) return "N/A";
     return nf(hour, 2) + ":00-" + nf(hour, 2) + ":59";
   }
 
+  // Formats a delay in minutes
   String formatDelay(int minutes) {
     if (minutes == Integer.MIN_VALUE || minutes == Integer.MAX_VALUE) return "N/A";
     if (minutes > 0) return "+" + minutes + " min";
@@ -552,25 +613,30 @@ class DataScreen {
     return "0 min";
   }
 
+  // Converts a 0.0–1.0 fraction to a percentage string
   String formatPercent(float value) {
     return nf(value * 100.0, 0, 1) + "%";
   }
 
+  // Returns null if the string is null or empty
   String cleanValue(String value) {
     if (value == null) return null;
     String trimmed = trim(value);
     return trimmed.length() == 0 ? null : trimmed;
   }
 
+  // Used to avoid displaying blank strings in UI labels
   String safeLabel(String value, String fallback) {
     if (value == null || value.length() == 0) return fallback;
     return value;
   }
 
+  // Makes string noun plural
   String pluralize(int value, String singular, String plural) {
     return value == 1 ? "1 " + singular : str(value) + " " + plural;
   }
 
+  // Returns the label of whichever pie slice is largest
   String getLargestPieLabel(ScreenMetrics metrics) {
     float best = metrics.onTimeSliceRate;
     String label = "On-time";
@@ -584,6 +650,7 @@ class DataScreen {
     return label;
   }
 
+  // Returns the rate value of the largest pie slice
   float getLargestPieRate(ScreenMetrics metrics) {
     float best = metrics.onTimeSliceRate;
     if (metrics.lateSliceRate > best) best = metrics.lateSliceRate;
@@ -591,6 +658,7 @@ class DataScreen {
     return best;
   }
 
+  // Holds the label, value, and colour for one metric tile in the sidebar
   class MetricTile {
     String label, value;
     color valueColor;
@@ -602,6 +670,7 @@ class DataScreen {
     }
   }
 
+  // Groups a set of MetricTiles under a shared section heading
   class SidebarGroup {
     String title;
     MetricTile[] tiles;

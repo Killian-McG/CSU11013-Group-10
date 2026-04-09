@@ -1,7 +1,11 @@
-// Builds a bar chart of the busiest oirigin airports
+// MAIN AUTHOR: Calvin - Week 2
+
+//  BAR CHART
+//   Builds a bar chart of the top 20 busiest oirigin airports
 
 class BarChart {
 
+  // Maximum number of airports to display on the chart
   int NUM_AIRPORTS = 20;
 
   color barColor;
@@ -21,6 +25,7 @@ class BarChart {
 
   float marginL, marginR, marginT, marginB;
 
+  // Sets default colours and initialises all values
   BarChart() {
     barColor = color(100, 140, 220);
     barHoverColor = color(74, 122, 214);
@@ -40,18 +45,20 @@ class BarChart {
     marginB = 82;
   }
 
+  // Updates mouse hover position
   void setHoverMouse(float mx, float my) {
     hoverMouseX = mx;
     hoverMouseY = my;
   }
 
+  // Data cleaning
   String cleanCode(String value) {
     if (value == null) return null;
     String cleaned = trim(value);
     return cleaned.length() == 0 ? null : cleaned;
   }
 
-  // Counts flights by origin airport then sorts them so the busiest oirigins appear first
+  // Counts filtered flights by origin airport
   void computeCounts(ArrayList<Flight> data) {
     java.util.HashMap<String, Integer> map = new java.util.HashMap<String, Integer>();
 
@@ -63,6 +70,7 @@ class BarChart {
       }
     }
 
+    // Sorts counts highest to lowest in order to find busiest aiports
     java.util.ArrayList<java.util.Map.Entry<String, Integer>> entries =
       new java.util.ArrayList<java.util.Map.Entry<String, Integer>>(map.entrySet());
 
@@ -84,6 +92,7 @@ class BarChart {
     }
   }
 
+  // Rounds a raw step value up to a "nice" number
   float getNiceStep(float value) {
     if (value <= 0) return 1;
     float exponent = pow(10, floor(log(value) / log(10)));
@@ -95,6 +104,7 @@ class BarChart {
     return 10 * exponent;
   }
 
+  // Returns the total number of flights shown across all bars
   int getTotalFlights() {
     if (counts == null) return 0;
 
@@ -106,6 +116,8 @@ class BarChart {
     return total;
   }
 
+  // Draws a small pop-up box near the mouse showing the airport code,
+  // flight count, and percentage of the displayed total
   void drawTooltip(String code, int count, int total, float graphX, float graphY, float graphW, float graphH) {
     rectMode(CORNER);
 
@@ -146,6 +158,7 @@ class BarChart {
     text(line3, boxX + 12, boxY + 48);
   }
 
+  // Draws the chart title centred at the top of the screen
   void drawTitle() {
     fill(textColor);
     noStroke();
@@ -156,6 +169,7 @@ class BarChart {
     text("Flights by Origin Airport", width / 2, 30);
   }
 
+  // Draws horizontal grid lines across the graph area and the y-axis numbers
   void drawGrid(float graphX, float graphY, float graphW, float graphH, float yMax, int stepCount, float yStep) {
     stroke(gridColor);
     strokeWeight(1);
@@ -178,6 +192,7 @@ class BarChart {
     }
   }
 
+  // Draws the two axis lines
   void drawAxes(float graphX, float graphY, float graphW, float graphH) {
     stroke(60);
     strokeWeight(1.5);
@@ -203,6 +218,8 @@ class BarChart {
     popMatrix();
   }
 
+  // Draws all the bars, the count labels above each bar,
+  // and the airport-code labels below the x-axis
   void drawBars(float graphX, float graphY, float graphW, float graphH, float yMax) {
     int n = airports.length;
     if (n == 0) return;
@@ -212,7 +229,9 @@ class BarChart {
     float barWidth = max(6, slotWidth - gap);
 
     hoveredIndex = -1;
-
+    
+    
+    // Reduces x-axis labels when there is too many bars and croeding occurs
     int maxLabels = max(1, floor(graphW / 52.0));
     int labelInterval = max(1, ceil(n / float(maxLabels)));
 
@@ -262,6 +281,8 @@ class BarChart {
     }
   }
 
+  // Recomputes the counts from the current filtered data, then
+  // draws the background, title, grid, axes, bars, and tooltip
   void drawBarChart(ArrayList<Flight> data) {
     background(bgColor);
     rectMode(CORNER);

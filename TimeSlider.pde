@@ -1,4 +1,10 @@
+// MAIN AUTHOR: Calvin - Week 3
+
+// TIME SLIDER
+//   SLider for user to input data during search in relation to time periods
+
 class TimeSlider {
+  // Position of the slider on screen
   float x, y, w;
   String label;
 
@@ -17,6 +23,7 @@ class TimeSlider {
   color labelColor;
   color tickColor;
 
+  // Constructor stores position/size and sets default colours and starting time range
   TimeSlider(float x, float y, float w, String label) {
     this.x     = x;
     this.y     = y;
@@ -39,8 +46,7 @@ class TimeSlider {
     tickColor  = color(180);
   }
 
-  // ── Display ───────────────────────────────────────────────────────────────
-
+  // Draws all parts of the slider from back to front
   void display() {
     float startX = getKnobX(startMinutes);
     float endX   = getKnobX(endMinutes);
@@ -52,6 +58,7 @@ class TimeSlider {
     drawKnob(endX);
   }
 
+  // Draws the small text label above the track
   void drawLabel() {
     fill(labelColor);
     noStroke();
@@ -60,6 +67,7 @@ class TimeSlider {
     text(label, x, y - 22);
   }
 
+  // Draws small vertical tick marks every hour and longer marks every 6 hours
   void drawTicks() {
     stroke(tickColor);
     strokeWeight(1);
@@ -80,6 +88,7 @@ class TimeSlider {
     }
   }
 
+  // Draws the track: first the full grey line, then the blue highlight between the two knobs
   void drawTrack(float startX, float endX) {
     stroke(trackColor);
     strokeWeight(trackH);
@@ -92,6 +101,7 @@ class TimeSlider {
     line(startX, y, endX, y);
   }
 
+  // Draws a single circular knob
   void drawKnob(float knobX) {
     fill(knobColor);
     stroke(knobBorder);
@@ -99,8 +109,7 @@ class TimeSlider {
     ellipse(knobX, y, knobR * 2, knobR * 2);
   }
 
-  // ── Mouse handling ────────────────────────────────────────────────────────
-
+  // Mouse pressed event handling
   void handleMousePressed() {
     float startX = getKnobX(startMinutes);
     float endX   = getKnobX(endMinutes);
@@ -116,37 +125,41 @@ class TimeSlider {
     }
   }
 
+  // Mouse dragged event handling
   void handleMouseDragged() {
     if (activeKnob != 0) updateActiveKnob();
   }
 
+  // Mouse released event handling
   void handleMouseReleased() {
     activeKnob = 0;
   }
 
+  // Converts the mouse's current x position into a minute value and assigns it to the correct knob
   void updateActiveKnob() {
     int minutes = xToMinutes(constrain(mouseX, x, x + w));
     if (activeKnob == 1) startMinutes = constrain(minutes, 0, endMinutes);
     else if (activeKnob == 2) endMinutes = constrain(minutes, startMinutes, 1439);
   }
 
-  // ── Geometry helpers ──────────────────────────────────────────────────────
-
+  // Returns knob x value
   float getKnobX(int minutes) {
     return x + (minutes / 1439.0) * w;
   }
 
+  // Return x value in minutes
   int xToMinutes(float px) {
     return round(((px - x) / w) * 1439);
   }
 
-  // ── Setters / getters used externally ────────────────────────────────────
-
+  // Sets the selected range
   void setInterval(int start, int end) {
     startMinutes = constrain(min(start, end), 0, 1439);
     endMinutes   = constrain(max(start, end), 0, 1439);
   }
 
+  // Returns the selected start time in minutes from midnight
   int getStartTotalMinutes() { return startMinutes; }
+  // Returns the selected end time in minutes from midnight
   int getEndTotalMinutes()   { return endMinutes;   }
 }

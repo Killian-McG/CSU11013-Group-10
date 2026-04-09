@@ -1,6 +1,19 @@
+// MAIN AUTHOR: Cameron - Week 3
+
+// Editors: Matthew and Killian 
+//          Improved code layout, fixed filter errors and fixed cosmetics issues
+
+// SEARCH SCREEN
+//    First screen users sees, allows users to select chart type and filter data
 class SearchScreen {
+  
+  // Complete list of flights
   ArrayList<Flight> allFlights;
+  
+  // Filter engine applied to users selections
   FlightFilter flightFilter;
+  
+  // Layout constants
   final int PADDING = 18;
   final int HEADER_H = 96;
   final int TAB_Y = 108;
@@ -13,11 +26,13 @@ class SearchScreen {
   final int FIELD_GAP_Y = 20;
   final int CHECKBOX_GAP_Y = 30;
 
+  // Internal keys used to identify each chart type in code
   String[] chartKeys = { "histogram", "barchart", "scatterplot", "piechart" };
   String[] chartLabels = { "Histogram", "Bar Chart", "Scatter Plot", "Pie Chart" };
 
   int activeTab = 0;
 
+  // UI COntrols
   TimeSlider[] sliders;
   Button[] searchButtons;
   Button[] resetButtons;
@@ -34,6 +49,7 @@ class SearchScreen {
   Dropdown[] timeBucketDropdowns;
   Dropdown[] delayToleranceDropdowns;
 
+  // Dropdown Option lists
   String[] carrierOptions;
   String[] originStateOptions;
   String[] destinationStateOptions;
@@ -67,6 +83,7 @@ class SearchScreen {
     initializeInteractiveControls();
   }
 
+  // Builds the string arrays that populate each dropdown
   void initializeFilterOptions() {
     carrierOptions = buildOptionsFromFlights("carrier", "Any carrier");
     originStateOptions = buildOptionsFromFlights("originState", "Any origin state");
@@ -76,6 +93,7 @@ class SearchScreen {
     delayToleranceOptions = new String[] { "0 mins", "10 mins", "20 mins", "30 mins", "45 mins", "60 mins", "90 mins", "120 mins" };
   }
 
+  // Creates all the UI widgets
   void initializeInteractiveControls() {
     sliders = new TimeSlider[chartKeys.length];
     searchButtons = new Button[chartKeys.length];
@@ -92,6 +110,7 @@ class SearchScreen {
     timeBucketDropdowns = new Dropdown[chartKeys.length];
     delayToleranceDropdowns = new Dropdown[chartKeys.length];
 
+    // Calculate where the tab row should start so it is centred on screen
     int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * TAB_GAP;
     int tabStartX = (width - totalTabW) / 2;
 
@@ -115,6 +134,7 @@ class SearchScreen {
     }
   }
 
+  // Return the widget for the currently active tab
   Dropdown carrierDropdown() {
     return carrierDropdowns[activeTab];
   }
@@ -150,6 +170,7 @@ class SearchScreen {
     drawDropdownOverlays();
   }
 
+  // Draws any dropdown that is currently open
   void drawDropdownOverlays() {
     if (carrierDropdown().isOpen) carrierDropdown().display();
     if (originStateDropdown().isOpen) originStateDropdown().display();
@@ -159,6 +180,7 @@ class SearchScreen {
     if (delayToleranceDropdown().isOpen) delayToleranceDropdown().display();
   }
 
+  // Draws the white header bar at the top of the screen with the logo centred
   void drawHeader() {
     noStroke();
     fill(cardColor);
@@ -179,6 +201,7 @@ class SearchScreen {
       image(headerLogo, width / 2.0, HEADER_H / 2.0, logoW, logoH);
       imageMode(CORNER);
     } else {
+      // Fallback text if the image file is not found
       fill(textColor);
       textAlign(CENTER, CENTER);
       textSize(32);
@@ -186,6 +209,7 @@ class SearchScreen {
     }
   }
 
+  // Draws the row of chart-selection tabs below the header
   void drawTabs() {
     int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * TAB_GAP;
     int tabStartX = (width - totalTabW) / 2;
@@ -209,6 +233,7 @@ class SearchScreen {
     }
   }
 
+  // Returns a PanelRects struct describing the positions and sizes of the filter panel (left) and preview panel (right)
   PanelRects calculatePanelRects() {
     PanelRects rects = new PanelRects();
     rects.bodyY = TAB_Y + TAB_H + 12;
@@ -220,6 +245,7 @@ class SearchScreen {
     return rects;
   }
 
+  // The left-hand panel containing the time slider, dropdowns, checkboxes, and the Search / Reset buttons
   void drawFilterPanel(float x, float y, float w, float h) {
     drawCard(x, y, w, h);
 
@@ -249,9 +275,11 @@ class SearchScreen {
     drawActionButtons(x + 20, buttonY, w - 40);
   }
 
+  // The right-hand panel that shows a live count and breakdown of how many flights currently match the filter settings
   void drawPreviewPanel(float x, float y, float w, float h) {
     drawCard(x, y, w, h);
-
+    
+    // Compute live statistics from the current filter selection
     ArrayList<Flight> previewFlights = buildFilteredFlightsFromCurrentSelections();
     int flightCount = previewFlights.size();
     int delayedCount = countDelayed(previewFlights);
@@ -275,6 +303,7 @@ class SearchScreen {
     drawStatTile("Cancelled", str(cancelledCount), x + 20, statsY, statsW, dangerCol);
     drawStatTile("Diverted", str(divertedCount), x + 34 + statsW, statsY, statsW, warningCol);
 
+    // Info blocks summarising each active filter in plain text
     float infoTop = y + 272;
     float infoX = x + 20;
     float infoW = w - 40;
@@ -326,6 +355,7 @@ class SearchScreen {
     );
   }
 
+  // Positions and draws all dropdowns and checkboxes in a tidy two column grid
   void drawCompactFilterGrid(float x, float y, float availableW) {
     float gapX = 14;
     float colW = (availableW - gapX) / 2.0;
@@ -341,6 +371,7 @@ class SearchScreen {
     drawCheckboxPair(delayedOnlyBoxes[activeTab], onTimeOnlyBoxes[activeTab], x, y, colW, gapX);
   }
 
+  // Sets the position of two dropdowns side by side and draws them
   void drawDropdownPair(Dropdown left, Dropdown right, float x, float y, float colW, float gapX) {
     left.x = x;
     left.y = y;
@@ -350,6 +381,7 @@ class SearchScreen {
     right.display();
   }
 
+  // Sets the position of two checkboxes side by side and draws them
   void drawCheckboxPair(CheckBox left, CheckBox right, float x, float y, float colW, float gapX) {
     left.x = x;
     left.y = y;
@@ -359,6 +391,7 @@ class SearchScreen {
     right.display();
   }
 
+  // Draws the Reset and Search buttons right-aligned at the bottom
   void drawActionButtons(float x, float y, float availableW) {
     float totalW = 124 + 12 + 148;
     float startX = x + availableW - totalW;
@@ -372,6 +405,7 @@ class SearchScreen {
     searchButtons[activeTab].display();
   }
 
+  // Draws the large "N flights matching your filters" hero area at the top of the preview panel
   void drawSummaryHero(float x, float y, float w, float h, int flightCount) {
     noStroke();
     fill(accentSoft);
@@ -390,6 +424,7 @@ class SearchScreen {
     textSize(11);
   }
 
+  // Draws a single coloured stat tile
   void drawStatTile(String label, String value, float x, float y, float w, color dotCol) {
     fill(color(250));
     stroke(cardStroke);
@@ -410,6 +445,7 @@ class SearchScreen {
     text(value, x + w - 10, y + 21);
   }
 
+  // Used to summarise each active filter in the preview panel
   void drawInfoBlock(String label, String value, float x, float y, float w) {
     fill(textColor);
     textAlign(LEFT, TOP);
@@ -421,6 +457,7 @@ class SearchScreen {
     text(value, x, y + 16, w, 28);
   }
 
+  // Draws a pill-shaped text label showing the selected time range
   void drawRangePill(float x, float y, float w, float h) {
     noStroke();
     fill(color(248, 250, 254));
@@ -432,6 +469,7 @@ class SearchScreen {
     text(buildSelectedTimeSummary(), x + w / 2, y + h / 2);
   }
 
+  // Draws a simple rounded-rectangle card background
   void drawCard(float x, float y, float w, float h) {
     fill(cardColor);
     stroke(cardStroke);
@@ -439,6 +477,7 @@ class SearchScreen {
     rect(x, y, w, h, CARD_RADIUS);
   }
 
+  // Draws a small section label above a group of controls
   void drawSmallLabel(String label, float x, float y) {
     fill(textColor);
     noStroke();
@@ -447,22 +486,26 @@ class SearchScreen {
     text(label, x, y);
   }
 
+  // Returns a "HH:MM - HH:MM" string for the current slider range
   String buildSelectedTimeSummary() {
     return formatMinutes(sliders[activeTab].getStartTotalMinutes()) + " - "
         + formatMinutes(sliders[activeTab].getEndTotalMinutes());
   }
 
+  // If value equals anyLabel returns fallback. Otherwise returns value as is
   String simplifyAnyValue(String value, String anyLabel, String fallback) {
     if (value == null || value.length() == 0 || value.equals(anyLabel)) return fallback;
     return value;
   }
 
+  // Returns a OriginState to DestinationState summary string
   String buildRouteSummary() {
     String origin = simplifyAnyValue(getSelectedOriginState(), "Any origin state", "Any origin state");
     String destination = simplifyAnyValue(getSelectedDestinationState(), "Any destination state", "Any destination state");
     return origin + " to " + destination;
   }
 
+  // Combines the delay tolerance number and any checkbox flags into one string
   String buildDelayAndFlagSummary() {
     String delayText = getSelectedDelayTolerance() + " mins tolerance";
     String flags = buildFlagSummary();
@@ -470,6 +513,7 @@ class SearchScreen {
     return delayText + ", " + flags;
   }
 
+  // Mouse pressed event handler
   void handleMousePressed() {
     if (handleTabClick()) return;
 
@@ -487,6 +531,7 @@ class SearchScreen {
     }
   }
 
+  // Checks whether any tab button was clicked and switches to it
   boolean handleTabClick() {
     int totalTabW = chartLabels.length * TAB_W + (chartLabels.length - 1) * TAB_GAP;
     int tabStartX = (width - totalTabW) / 2;
@@ -501,6 +546,7 @@ class SearchScreen {
     return false;
   }
 
+  // Forwards a mouse press event to all dropdowns so they can open/close or register a selection
   void handleDropdownPressed() {
     carrierDropdown().handleMousePressed();
     originStateDropdown().handleMousePressed();
@@ -510,6 +556,7 @@ class SearchScreen {
     delayToleranceDropdown().handleMousePressed();
   }
 
+  // Handles checkbox toggles
   void handleCheckBoxPressed() {
     if (cancelledBoxes[activeTab].isMouseOver()) {
       cancelledBoxes[activeTab].setChecked(!cancelledBoxes[activeTab].isChecked());
@@ -545,16 +592,19 @@ class SearchScreen {
     searchButtons[activeTab].y = y;
   }
 
+  // Records which chart is active and signals the main sketch
   void fireSearch() {
     pendingChartKey = chartKeys[activeTab];
     searchFired = true;
   }
 
+  // Resets all controls back to their default state
   void resetFilters() {
     initializeInteractiveControls();
     searchFired = false;
   }
 
+  // Sends users search filter to filter criteria and forms flight filter
   FilterCriteria buildCriteriaFromCurrentSelections() {
     FilterCriteria criteria = new FilterCriteria();
     criteria.startMinutes = sliders[activeTab].getStartTotalMinutes();
@@ -577,6 +627,7 @@ class SearchScreen {
     return flightFilter.filter(allFlights, buildCriteriaFromCurrentSelections());
   }
 
+  // Returns number of cancelled flights
   int countCancelled(ArrayList<Flight> data) {
     int count = 0;
     for (int i = 0; i < data.size(); i++) {
@@ -585,6 +636,7 @@ class SearchScreen {
     return count;
   }
 
+  // Returns number of diverted flights
   int countDiverted(ArrayList<Flight> data) {
     int count = 0;
     for (int i = 0; i < data.size(); i++) {
@@ -593,6 +645,7 @@ class SearchScreen {
     return count;
   }
 
+  // Returns number of delayed flights
   int countDelayed(ArrayList<Flight> data) {
     int count = 0;
     int toleranceMinutes = getSelectedDelayTolerance();
@@ -604,6 +657,7 @@ class SearchScreen {
     return count;
   }
 
+  // Returns number of ontime flights
   int countOnTime(ArrayList<Flight> data) {
     int count = 0;
     int toleranceMinutes = getSelectedDelayTolerance();
@@ -615,28 +669,34 @@ class SearchScreen {
     return count;
   }
 
+  // Returns selected delay tolerance
   int getSelectedDelayTolerance() {
     String selected = delayToleranceDropdown().getSelected();
     if (selected == null || selected.length() == 0 || selected.equals("Delay tolerance")) return 0;
     return int(split(selected, ' ')[0]);
   }
 
+  // Returns selected carrier
   String getSelectedCarrier() {
     return getSelectedOrFallback(carrierDropdown(), "Any carrier", "Carrier");
   }
 
+  // Returns selected origin state
   String getSelectedOriginState() {
     return getSelectedOrFallback(originStateDropdown(), "Any origin state", "Origin state");
   }
 
+  // Returns selected destination state
   String getSelectedDestinationState() {
     return getSelectedOrFallback(destinationStateDropdown(), "Any destination state", "Destination state");
   }
 
+  // Returns selected distance band
   String getSelectedDistanceBand() {
     return getSelectedOrFallback(distanceDropdown(), "Any distance", "Distance");
   }
 
+  // Returns selected time bucket
   String getSelectedTimeBucket() {
     return getSelectedOrFallback(timeBucketDropdown(), "Any departure", "Departure bucket");
   }
@@ -647,6 +707,7 @@ class SearchScreen {
     return selected;
   }
 
+  // Builds preview sumary
   String buildFlagSummary() {
     ArrayList<String> flags = new ArrayList<String>();
     if (cancelledBoxes[activeTab].isChecked()) flags.add("include cancelled");

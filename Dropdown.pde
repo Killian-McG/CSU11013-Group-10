@@ -1,3 +1,7 @@
+// MAIN AUTHOR: Calvin - Week 2
+
+// DROPDOWN
+//   Dropdown, scollable input list
 class Dropdown {
   float x, y, w, h;
   String label;
@@ -26,6 +30,8 @@ class Dropdown {
   float wheelStep = 18;
   float scrollEase = 0.22;
 
+  // Constructor – creates the drop-down at position (x, y) with the given
+  // width, height, label text, and list of option strings
   Dropdown(float x, float y, float w, float h, String label, String[] options) {
     this.x = x;
     this.y = y;
@@ -49,7 +55,10 @@ class Dropdown {
     selectedMarkColor = color(80, 120, 220);
   }
 
+  // Renders all visible parts of the widget
   void display() {
+    
+    // Smooth scrolling makes menu feel less jumpy
     updateScrollAnimation();
     drawLabel();
     drawClosedBox();
@@ -60,6 +69,7 @@ class Dropdown {
     }
   }
 
+  //  Draws the small label text above the header box
   void drawLabel() {
     fill(labelColor);
     noStroke();
@@ -68,6 +78,7 @@ class Dropdown {
     text(label, x, y - 4);
   }
 
+  // Draws the closed header rectangle with the selected option text and arrow
   void drawClosedBox() {
     stroke(isOpen ? activeBorderColor : borderColor);
     strokeWeight(1);
@@ -89,7 +100,9 @@ class Dropdown {
     drawArrow(x + w - 18, y + h / 2, isOpen);
   }
 
+  // Draws the visible rows of options below the header
   void drawVisibleOptions() {
+    // Draws one extra row past the visible area so scrolling does not show gaps at the edge
     int totalVisible = min(visibleRows + 1, options.length);
     int firstIndex = floor(scrollY / h);
     float offsetY = scrollY - firstIndex * h;
@@ -115,6 +128,7 @@ class Dropdown {
     }
   }
 
+  // Draws the small triangle arrow icon
   void drawArrow(float cx, float cy, boolean isOpen) {
     float s = 5;
     noStroke();
@@ -127,6 +141,7 @@ class Dropdown {
     }
   }
 
+  // Draws the scrollbar track and draggable thumb on the right side of the list
   void drawScrollbar() {
     if (options.length <= visibleRows) return;
 
@@ -154,6 +169,7 @@ class Dropdown {
     rect(trackX, thumbY, trackW, thumbH, 4);
   }
 
+  // Each frame, gently moves scrollY toward targetScrollY using linear interpolation
   void updateScrollAnimation() {
     scrollY = lerp(scrollY, targetScrollY, scrollEase);
 
@@ -167,7 +183,9 @@ class Dropdown {
     targetScrollY = constrain(targetScrollY, 0, maxScroll);
   }
 
+  // Mouse pressed event handler
   void handleMousePressed() {
+    // First click opens/closes the header
     if (mouseX >= x && mouseX <= x + w
         && mouseY >= y && mouseY <= y + h) {
       isOpen = !isOpen;
@@ -177,6 +195,7 @@ class Dropdown {
 
     if (isOpen && options.length > visibleRows) {
       if (isMouseOverScrollbarThumb()) {
+        // Remembers where the grab started so the thumb does not snap under the mouse
         draggingScrollbar = true;
         scrollbarGrabOffset = mouseY - getScrollbarThumbY();
         return;
@@ -204,6 +223,7 @@ class Dropdown {
     isOpen = false;
   }
 
+  // Mouse moved event handler
   void handleMouseMoved() {
     hoveredIndex = -1;
     if (isOpen) {
@@ -211,6 +231,7 @@ class Dropdown {
     }
   }
 
+  // Mouse dragged event handler
   void handleMouseDragged() {
     if (!draggingScrollbar) return;
 
@@ -231,10 +252,12 @@ class Dropdown {
     targetScrollY = ((thumbY - menuY) / trackTravel) * maxScroll;
   }
 
+  // Mouse released event handler
   void handleMouseReleased() {
     draggingScrollbar = false;
   }
 
+  // Mouse wheel event handler
   void handleMouseWheel(float amount) {
     if (!isOpen || !isMouseOverOpenMenu()) return;
 
@@ -242,6 +265,7 @@ class Dropdown {
     targetScrollY = constrain(targetScrollY + amount * wheelStep, 0, maxScroll);
   }
 
+  // Clicking the track moves the thumb toward the mouse, similar to a native scroll bar
   void jumpScrollbarToMouse() {
     float menuY = y + h;
     float menuH = visibleRows * h;
@@ -258,6 +282,7 @@ class Dropdown {
     targetScrollY = ((desiredThumbY - menuY) / trackTravel) * maxScroll;
   }
 
+  // Returns true if the mouse is over the scrollbar track area
   boolean isMouseOverScrollbarTrack() {
     if (!isOpen || options.length <= visibleRows) return false;
 
@@ -269,6 +294,7 @@ class Dropdown {
         && mouseY >= menuY && mouseY <= menuY + menuH;
   }
 
+  // Returns the pixel y-coordinate of the top of the scrollbar thumb
   float getScrollbarThumbY() {
     float menuY = y + h;
     float menuH = visibleRows * h;
@@ -284,6 +310,7 @@ class Dropdown {
     return menuY + (menuH - thumbH) * (scrollY / maxScroll);
   }
 
+  // Returns the pixel height of the scrollbar thumb
   float getScrollbarThumbH() {
     float menuH = visibleRows * h;
     float totalContentH = options.length * h;
@@ -292,6 +319,7 @@ class Dropdown {
     return max(24, menuH * (visibleH / totalContentH));
   }
 
+  // Returns true if the mouse is directly over the scrollbar thumb
   boolean isMouseOverScrollbarThumb() {
     if (!isOpen || options.length <= visibleRows) return false;
 
@@ -303,6 +331,7 @@ class Dropdown {
         && mouseY >= thumbY && mouseY <= thumbY + thumbH;
   }
 
+  // Returns true if the mouse is inside the visible option list area
   boolean isMouseOverOpenMenu() {
     if (!isOpen) return false;
 
@@ -316,6 +345,7 @@ class Dropdown {
   int getOptionIndexAt(float mx, float my) {
     if (options == null) return -1;
 
+    // Mainly used for hover state
     for (int i = 0; i < options.length; i++) {
       float optionY = y + h + i * h;
 
@@ -328,6 +358,7 @@ class Dropdown {
     return -1;
   }
 
+  // Returns the string value of the currently selected option
   String getSelected() {
     if (options == null || options.length == 0 || selectedIndex < 0) {
       return "";
@@ -335,17 +366,20 @@ class Dropdown {
 
     return options[selectedIndex];
   }
-
+  
+  // Returns the numeric index of the currently selected option
   int getSelectedIndex() {
     return selectedIndex;
   }
 
+  // selects an option by index
   void setSelectedIndex(int index) {
     if (options != null && index >= 0 && index < options.length) {
       selectedIndex = index;
     }
   }
 
+  // Replaces the option list entirely
   void setOptions(String[] newOptions) {
     options = newOptions;
     selectedIndex = (newOptions != null && newOptions.length > 0) ? 0 : -1;

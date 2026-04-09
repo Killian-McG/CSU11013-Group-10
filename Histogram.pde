@@ -1,3 +1,7 @@
+// MAIN AUTHOR: Cameron - Week 3
+
+// HISTOGRAM
+//  Sorts flights be scheduled departure hour
 class Histogram {
   int[] hourCounts;
   int hoveredHour;
@@ -5,6 +9,7 @@ class Histogram {
   float hoverMouseX;
   float hoverMouseY;
 
+  // Constructor initialises all counts to 0
   Histogram() {
     hourCounts = new int[24];
     hoveredHour = -1;
@@ -12,12 +17,15 @@ class Histogram {
     hoverMouseY = -1;
   }
 
+  // Updates mouse over position
   void setHoverMouse(float mx, float my) {
     hoverMouseX = mx;
     hoverMouseY = my;
   }
 
+  // Group flights into hourly buckets using the scheduled departure tim
   void setData(ArrayList<Flight> data) {
+    // Clear the old buckets first so switching filters does not leave stale counts behind
     for (int i = 0; i < 24; i++) hourCounts[i] = 0;
 
     for (int i = 0; i < data.size(); i++) {
@@ -31,6 +39,7 @@ class Histogram {
   }
 
   float getNiceStep(float value) {
+    // Rounded steps make the y-axis easier to read than raw fractional spacing
     if (value <= 0) return 1;
     float exponent = pow(10, floor(log(value) / log(10)));
     float fraction = value / exponent;
@@ -40,16 +49,19 @@ class Histogram {
     return 10 * exponent;
   }
 
+  // Returns the hour as a  two digit string
   String getHourLabel(int hour) {
     return nf(hour, 2);
   }
 
+  // Returns the grand total of all flights across all 24 hours
   int getTotalFlights() {
     int total = 0;
     for (int i = 0; i < 24; i++) total += hourCounts[i];
     return total;
   }
 
+  // Finds and returns the highest single hour count
   int getMaxCount() {
     int maxCount = 1;
     for (int i = 0; i < 24; i++) {
@@ -58,6 +70,8 @@ class Histogram {
     return maxCount;
   }
 
+  // Draws the hover tooltip showing the hour range, flight count,
+  // and percentage of total flights for the bar the mouse is over
   void drawTooltip(int hour, int count, int total, float graphX, float graphY, float graphW, float graphH) {
     rectMode(CORNER);
 
@@ -90,6 +104,7 @@ class Histogram {
     text(line3, boxX + 12, boxY + 48);
   }
 
+  // Draws the full histogram
   void display(ArrayList<Flight> data) {
     background(245);
     rectMode(CORNER);

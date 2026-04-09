@@ -1,9 +1,15 @@
+// MAIN AUTHOR: Killian - Week 2
+
+// SCATTER PLOT
+//  Plots scheduled departure time against actual departure time for each usable flight
 class ScatterPlot {
+  // Margins around the plotting area
   final float marginL = 80;
   final float marginR = 40;
   final float marginT = 70;
   final float marginB = 80;
 
+  // One colour per known carrier
   color[] carrierColors = {
     color(100, 140, 220),
     color(78, 168, 128),
@@ -13,23 +19,28 @@ class ScatterPlot {
     color(136, 135, 128)
   };
 
+  // Carrier codes in the same order as carrierColors
   String[] carrierNames = { "AA", "AS", "B6", "HA", "NK", "Other" };
 
+  // Mouse position used to detect which point the user is hovering over
   float hoverMouseX = -1;
   float hoverMouseY = -1;
   int hoveredIndex = -1;
 
+  // All the drawable points built from the current flight data
   ArrayList<ScatterPoint> points;
 
   ScatterPlot() {
     points = new ArrayList<ScatterPoint>();
   }
 
+  // Called by DataScreen each frame to pass the current mouse position in the local coordinate space of the chart
   void setHoverMouse(float mx, float my) {
     hoverMouseX = mx;
     hoverMouseY = my;
   }
 
+   // Bundles together everything we need to draw and describe one point on the chart
   class ScatterPoint {
     Flight flight;
     float x, y;
@@ -49,27 +60,32 @@ class ScatterPlot {
     }
   }
 
+  // Converts time in minutes to fraction
   float timeToFraction(int minutes) {
     return constrain(minutes / 1439.0, 0, 1);
   }
 
+  // Formats an integer minutes value as "HH:MM" for display
   String formatTimeLabel(int minutes) {
     if (minutes < 0) return "N/A";
     return nf(minutes / 60, 2) + ":" + nf(minutes % 60, 2);
   }
 
+  // Formats delay as readable string
   String formatDelay(int minutes) {
     if (minutes > 0) return "+" + minutes + " min";
     if (minutes < 0) return str(minutes) + " min";
     return "0 min";
   }
 
+  // Error checks data
   String safeCode(String value, String fallback) {
     if (value == null) return fallback;
     String cleaned = trim(value);
     return cleaned.length() == 0 ? fallback : cleaned;
   }
 
+  // Looks up the colour for a given carrier code
   color getCarrierColor(String carrier) {
     if (carrier != null) {
       String cleaned = trim(carrier);
@@ -80,6 +96,8 @@ class ScatterPlot {
     return carrierColors[carrierColors.length - 1];
   }
 
+
+  // Convert each usable flight into a screen-space point before drawing
   void buildPoints(ArrayList<Flight> data, float graphX, float graphY, float graphW, float graphH) {
     points.clear();
 
@@ -107,6 +125,7 @@ class ScatterPlot {
     }
   }
 
+  // Runs a linear search to find the closest point to the mouse cursor
   void findHoveredPoint() {
     hoveredIndex = -1;
     float bestDist = 10;
@@ -120,6 +139,7 @@ class ScatterPlot {
     }
   }
 
+  // Draws grid lines at intervals
   void drawGrid(float graphX, float graphY, float graphW, float graphH) {
     int[] tickMinutes = { 0, 240, 480, 720, 960, 1200, 1439 };
     String[] tickLabels = { "00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "23:59" };
@@ -146,7 +166,8 @@ class ScatterPlot {
       strokeWeight(1);
     }
   }
-
+  
+ // Draws axis
   void drawAxes(float graphX, float graphY, float graphW, float graphH) {
     stroke(60);
     strokeWeight(1.5);
@@ -168,11 +189,14 @@ class ScatterPlot {
   }
 
   void drawReferenceLine(float graphX, float graphY, float graphW, float graphH) {
+    // This diagonal is the "scheduled == actual" line
     stroke(185);
     strokeWeight(1.5);
     drawDashedLine(graphX, graphY + graphH, graphX + graphW, graphY, 8, 5);
   }
 
+  // Draws a small colour-coded legend in the top-right corner of the
+  // plot area showing which colour maps to which carrier code
   void drawLegend(float graphX, float graphY, float graphW) {
     float startX = graphX + graphW - 180;
     float startY = graphY + 12;
@@ -193,6 +217,7 @@ class ScatterPlot {
     }
   }
 
+  // Draws data points
   void drawPoints() {
     for (int i = 0; i < points.size(); i++) {
       if (i == hoveredIndex) continue;
@@ -211,6 +236,7 @@ class ScatterPlot {
     }
   }
 
+  // Draws a small floating box near the mouse showing the hovered flight's details
   void drawTooltip(ScatterPoint p, float graphX, float graphY, float graphW, float graphH) {
     rectMode(CORNER);
 
@@ -247,6 +273,7 @@ class ScatterPlot {
     text(line3, boxX + 12, boxY + 48);
   }
 
+  // Draws chart title
   void drawTitle() {
     fill(30);
     noStroke();
@@ -255,6 +282,7 @@ class ScatterPlot {
     text("Scheduled vs Actual Departure Time", width / 2, 30);
   }
 
+  // Called once per frame by DataScreen, darws graph
   void drawScatterPlot(ArrayList<Flight> data) {
     background(245);
     rectMode(CORNER);
@@ -291,6 +319,7 @@ class ScatterPlot {
     }
   }
 
+  // Draws a dashed line between two points
   void drawDashedLine(float x1, float y1, float x2, float y2, float dashLen, float gapLen) {
     float dx = x2 - x1;
     float dy = y2 - y1;

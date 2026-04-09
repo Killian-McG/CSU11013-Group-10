@@ -1,4 +1,10 @@
+// MAIN AUTHORS: Killian and Cameron - Week 1
+
+// FLIGHT
+//    Assigns named fields in csv to variables so the rest of the program can use them
 class Flight {
+  
+  // Data fields from csv
   String date;
   String carrier;
   int flightNum;
@@ -15,10 +21,13 @@ class Flight {
   int cancelled;
   int diverted;
   int distance;
-
+  
+  // Precomputed commonly used values
   int scheduledDepartureMinutes;
   int departureMinutes;
 
+  // Constructor called once per row in CSV file
+  // Saves values from csv as variables
   Flight(TableRow row) {
     date = row.getString("FL_DATE");
     carrier = row.getString("MKT_CARRIER");
@@ -37,6 +46,7 @@ class Flight {
     diverted = row.getInt("DIVERTED");
     distance = row.getInt("DISTANCE");
 
+    // Conversions, which are used in different classes many times
     scheduledDepartureMinutes = parseTimeToMinutes(scheduledDepartureTime);
     departureMinutes = parseTimeToMinutes(departureTime);
   }
@@ -49,29 +59,35 @@ class Flight {
     return departureMinutes;
   }
 
+  // Scheduled Departure time error checking
   boolean hasValidScheduledDeparture() {
     return scheduledDepartureMinutes >= 0;
   }
 
+  // Departure time error checking
   boolean hasValidDepartureTime() {
     return departureMinutes >= 0;
   }
 
+  // Returns delay minutes
   int getDepartureDelayMinutes() {
     if (scheduledDepartureMinutes < 0 || departureMinutes < 0) return Integer.MIN_VALUE;
 
+    // Flights around midnight can look wildly early/late unless we wrap the difference back into a sane range
     int diff = departureMinutes - scheduledDepartureMinutes;
     if (diff < -720) diff += 1440;
     else if (diff > 720) diff -= 1440;
     return diff;
   }
 
+  // Returns true if the flight departed more than toleranceMinutes 
   boolean isDelayedDeparture(int toleranceMinutes) {
     int delay = getDepartureDelayMinutes();
     if (delay == Integer.MIN_VALUE) return false;
     return delay > max(0, toleranceMinutes);
   }
 
+  // Returns true if the flight departed within the tolerance window
   boolean isOnTimeOrEarlyDeparture(int toleranceMinutes) {
     int delay = getDepartureDelayMinutes();
     if (delay == Integer.MIN_VALUE) return false;
@@ -83,6 +99,7 @@ class Flight {
   }
 }
 
+// Converts time values to minutes
 int parseTimeToMinutes(String s) {
   if (s == null) return -1;
   s = trim(s);
@@ -101,6 +118,7 @@ int parseTimeToMinutes(String s) {
     return -1;
   }
 
+  // Strip any non-digit characters that might appear in the data.
   String digits = "";
   for (int i = 0; i < s.length(); i++) {
     char c = s.charAt(i);
@@ -119,6 +137,7 @@ int parseTimeToMinutes(String s) {
   }
 }
 
+// Returns departure delay in minutes
 int getDepartureDelayMinutes(Flight f) {
   if (f == null) return Integer.MIN_VALUE;
   return f.getDepartureDelayMinutes();

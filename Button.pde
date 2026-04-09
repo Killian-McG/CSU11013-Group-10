@@ -1,3 +1,8 @@
+// MAIN AUTHOR: Matthew - Week 2
+
+//  Button
+//    Click button used across search and results screens
+
 class Button {
 
   float x, y, w, h;
@@ -12,7 +17,7 @@ class Button {
     this.label = label;
   }
 
-  // displays button and calculates hover state
+  // Displays button and calculates hover state
   void display() {
 
     hovered = isMouseOver();
@@ -33,11 +38,13 @@ class Button {
     text(label, x + w/2, y + h/2);
   }
 
+  // Mouse position checker
   boolean isMouseOver() {
     return mouseX >= x && mouseX <= x + w &&
            mouseY >= y && mouseY <= y + h;
   }
 
+  // Button clicked
   boolean isClicked() {
     return isMouseOver();
   }

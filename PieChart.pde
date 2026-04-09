@@ -1,3 +1,7 @@
+// MAIN AUTHOR: Matthew - Week 2
+
+// PIE CHART
+//   Breaks the current flight set into on-time, late, and cancelled slices
 class PieChart {
   float x, y, diameter;
 
@@ -13,6 +17,7 @@ class PieChart {
   float hoverMouseY;
   int hoveredSlice;
 
+  // Constructor sets the pies centre and size, and initialises all colours
   PieChart(float x, float y, float diameter) {
     this.x = x;
     this.y = y;
@@ -31,33 +36,39 @@ class PieChart {
     hoveredSlice = -1;
   }
 
+  // Updates mouse hover position
   void setHoverMouse(float mx, float my) {
     hoverMouseX = mx;
     hoverMouseY = my;
   }
 
+  // Formats a 0–1 fraction as a percentage string with one decimal place
   String formatPercent(float value) {
     return nf(value * 100.0, 0, 1) + "%";
   }
 
+  // Returns the display name for a slice by its index
   String getSliceLabel(int index) {
     if (index == 0) return "On-time";
     if (index == 1) return "Late";
     return "Cancelled";
   }
 
+  // Returns the fill colour for a slice by its index
   color getSliceColor(int index) {
     if (index == 0) return onTimeColor;
     if (index == 1) return lateColor;
     return cancelledColor;
   }
 
+  // Wraps any angle into the range [0, TWO_PI)
   float normalizeAngle(float angle) {
     while (angle < 0) angle += TWO_PI;
     while (angle >= TWO_PI) angle -= TWO_PI;
     return angle;
   }
 
+  // Returns true if angle falls inside the arc from start to end
   boolean angleBetween(float angle, float start, float end) {
     angle = normalizeAngle(angle);
     start = normalizeAngle(start);
@@ -66,6 +77,8 @@ class PieChart {
     return angle >= start || angle < end;
   }
 
+  // Draws a small pop-up box near the mouse with the slice label,
+  // count, and percentage
   void drawTooltip(String label, int count, float fraction, float graphX, float graphY, float graphW, float graphH) {
     rectMode(CORNER);
 
@@ -98,6 +111,7 @@ class PieChart {
     text(line3, boxX + 12, boxY + 48);
   }
 
+  // Draws pie chart legend 
   void drawLegendRow(float x, float y, float w, String label, int count, float fraction, color swatch, boolean active) {
     float rowH = 44;
     float swatchSize = 14;
@@ -130,11 +144,13 @@ class PieChart {
     text(formatPercent(fraction), x + w - 12, y + rowH / 2);
   }
 
+  // Counts flights, draws the donut chart, and handles hover detection
   void display(ArrayList<Flight> flights, int delayToleranceMinutes) {
     background(245);
     rectMode(CORNER);
     hoveredSlice = -1;
 
+    // Counts flights into thre diffenrent categories
     int onTime = 0, late = 0, cancelledCount = 0;
 
     for (int i = 0; i < flights.size(); i++) {

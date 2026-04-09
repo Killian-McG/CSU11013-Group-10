@@ -1,3 +1,11 @@
+// MAIN AUTHORS: Calvin and Matthew - Week 1
+
+
+// MAIN
+//   Entry point for processing sketch
+//   Loads CSV once, builds flight objects
+//   Gives control to ScreenManager
+
 import processing.event.MouseEvent;
 
 ArrayList<Flight> allFlights;
@@ -11,6 +19,7 @@ void setup() {
   allFlights = new ArrayList<Flight>();
   Table table = loadTable("data/flights.csv", "header");
 
+  // Turns each CSV row into a Flight object
   for (TableRow row : table.rows()) {
     allFlights.add(new Flight(row));
   }
@@ -18,13 +27,16 @@ void setup() {
   screenManager = new ScreenManager(allFlights);
 }
 
-void mouseWheel(MouseEvent event) {
-  screenManager.handleMouseWheel(event.getCount());
-}
-
+// ScreenManager decides which screen should be active
 void draw() {
   background(255);
   screenManager.display();
+}
+
+// Input Handlers:
+
+void mouseWheel(MouseEvent event) {
+  screenManager.handleMouseWheel(event.getCount());
 }
 
 void mousePressed() {

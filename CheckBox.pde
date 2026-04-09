@@ -1,3 +1,8 @@
+// MAIN AUTHOR: Matthew - Week 2
+
+// Checkbox
+//   checkbox input with its own label and checked state
+
 class CheckBox {
 
   float x, y, size;
@@ -36,11 +41,13 @@ class CheckBox {
     text(label, x + size + 15, y + size*0.7);
   }
 
+  // Mouse position checker
   boolean isMouseOver() {
     return mouseX >= x && mouseX <= x + size &&
            mouseY >= y && mouseY <= y + size;
   }
 
+  // Checked state control
   void setChecked(boolean value) {
     checked = value;
   }
